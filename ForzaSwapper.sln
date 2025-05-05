@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForzaSwapper", "ForzaSwapper\ForzaSwapper.csproj", "{864321ED-F377-40EB-884A-7FB01E13B1FF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{864321ED-F377-40EB-884A-7FB01E13B1FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{864321ED-F377-40EB-884A-7FB01E13B1FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{864321ED-F377-40EB-884A-7FB01E13B1FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{864321ED-F377-40EB-884A-7FB01E13B1FF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CA7D0402-448A-4FBC-8C4E-FAB1C8A19D95}
+	EndGlobalSection
+EndGlobal
