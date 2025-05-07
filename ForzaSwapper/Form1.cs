@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -31,6 +32,7 @@ namespace ForzaSwapper
                     PathDB = ofd.FileName;
                     PopulateComboBox(comboBox1, "Data_Car", "MediaName");
                     PopulateComboBox(comboBox2, "Data_Engine", "MediaName");
+                    PopulateComboBox(comboBox3, "Data_Car", "MediaName");
                 }
             }
         }
@@ -42,6 +44,7 @@ namespace ForzaSwapper
             {
                 using var connection = new SQLiteConnection(connectionString);
                 connection.Open();
+                EnsurePowertrainRecords(connection);
 
                 using var command = new SQLiteCommand(connection);
                 command.CommandText = $"SELECT * FROM List_UpgradeEngine";
@@ -107,9 +110,63 @@ namespace ForzaSwapper
             if (comboBox2.SelectedItem is MediaEngineItem engine)
             {
                 selectedEngineID = engine.EngineID;
-               
+
             }
         }
+
+        private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox3.SelectedValue is int selectedId)
+            {
+                LoadFilteredSwaps(selectedId);
+                VehicleID = selectedId.ToString();
+                UpdateCurrentEngineList();
+                PopulateDrivetrainComboBox(Convert.ToInt32(VehicleID));
+            }
+        }
+
+        private void PopulateDrivetrainComboBox(int vehicleId)
+        {
+            using var connection = new SQLiteConnection($"Data Source={PathDB};Version=3;");
+            connection.Open();
+
+            var drivetrainMap = new Dictionary<int, string>
+    {
+        { 1, "FWD" },
+        { 2, "RWD" },
+        { 3, "AWD" }
+    };
+
+            var drivetrains = new HashSet<string>();
+
+            using (var cmd = new SQLiteCommand(@"
+        SELECT DISTINCT p.DrivetrainId
+        FROM List_UpgradeDrivetrain lud
+        JOIN Powertrains p ON lud.PowertrainId = p.Id
+        WHERE lud.Ordinal = @VehicleId", connection))
+            {
+                cmd.Parameters.AddWithValue("@VehicleId", vehicleId);
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int drivetrainId = reader.GetInt32(0);
+                        if (drivetrainMap.TryGetValue(drivetrainId, out string name))
+                        {
+                            drivetrains.Add(name);
+                        }
+                    }
+                }
+            }
+
+            comboBox4.Items.Clear();
+            comboBox4.Items.AddRange(drivetrains.ToArray());
+            comboBox4.Items.Add("Add new drivetrain");
+        }
+
+
+
 
         private void LoadFilteredSwaps(int carId)
         {
@@ -259,12 +316,12 @@ VALUES
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
-            
+
         }
 
         private void label4_Click(object sender, EventArgs e)
         {
-           
+
         }
 
         private void UpdateCurrentEngineList()
@@ -337,19 +394,108 @@ VALUES
         {
 
         }
-    }
 
-    public class MediaItem
-    {
-        public int Id { get; set; }
-        public string MediaName { get; set; }
-        public override string ToString() => MediaName;
-    }
+        private void EnsurePowertrainRecords(SQLiteConnection connection)
+        {
+            var baseIconPath = @"GAME:\Media\UI\Textures\Data_Bound\Drivetrain_Icons\Drivetrain_FWD_Front.swatchbin";
 
-    public class MediaEngineItem
-    {
-        public string EngineID { get; set; }
-        public string MediaName { get; set; }
-        public override string ToString() => MediaName;
+            // First Record
+            InsertPowertrainIfNotExists(connection, 8, 1, 3, baseIconPath, baseIconPath);
+
+            // Second Record (ID + 1, EnginePlacementID + 1)
+            InsertPowertrainIfNotExists(connection, 9, 1, 2, baseIconPath, baseIconPath);
+        }
+
+        private void InsertPowertrainIfNotExists(SQLiteConnection connection, int id, int drivetrainId, int enginePlacementId, string iconPath, string smallIconPath)
+        {
+            using (var checkCmd = new SQLiteCommand("SELECT COUNT(1) FROM Powertrains WHERE Id = @Id", connection))
+            {
+                checkCmd.Parameters.AddWithValue("@Id", id);
+
+                long exists = (long)checkCmd.ExecuteScalar();
+
+                if (exists == 0)
+                {
+                    using (var insertCmd = new SQLiteCommand(@"
+                INSERT INTO Powertrains (Id, DrivetrainId, EnginePlacementId, IconPath, SmallIconPath)
+                VALUES (@Id, @DrivetrainId, @EnginePlacementId, @IconPath, @SmallIconPath)", connection))
+                    {
+                        insertCmd.Parameters.AddWithValue("@Id", id);
+                        insertCmd.Parameters.AddWithValue("@DrivetrainId", drivetrainId);
+                        insertCmd.Parameters.AddWithValue("@EnginePlacementId", enginePlacementId);
+                        insertCmd.Parameters.AddWithValue("@IconPath", iconPath);
+                        insertCmd.Parameters.AddWithValue("@SmallIconPath", smallIconPath);
+
+                        insertCmd.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            ImportEngineNamesFromCsv("C:\\Users\\cmart\\Downloads\\Project Forza Plus Car Info - PFP-4 Engine_Gearing.csv");
+
+        }
+
+        private void ImportEngineNamesFromCsv(string csvFilePath)
+        {
+            using (var connection = new SQLiteConnection("Data Source=" + PathDB))
+            {
+                connection.Open();
+
+                var lines = File.ReadAllLines(csvFilePath);
+
+                // Skip header
+                for (int i = 1; i < lines.Length; i++)
+                {
+                    var parts = lines[i].Split(',');
+
+                    if (parts.Length < 2) continue;
+
+                    string carDBName = parts[0].Trim();
+                    string engineName = parts[1].Trim();
+
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = @"
+                    UPDATE Data_Engine
+                    SET EngineName = @EngineName
+                    WHERE MediaName = @CarDBName;
+                ";
+                        command.Parameters.AddWithValue("@EngineName", engineName);
+                        command.Parameters.AddWithValue("@CarDBName", carDBName);
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+
+            MessageBox.Show("Engine names imported successfully from CSV.");
+        }
+
+        public class MediaItem
+        {
+            public int Id { get; set; }
+            public string MediaName { get; set; }
+            public override string ToString() => MediaName;
+        }
+
+        public class MediaEngineItem
+        {
+            public string EngineID { get; set; }
+            public string MediaName { get; set; }
+            public override string ToString() => MediaName;
+        }
+
+        public class EngineMapping
+        {
+            public string CarDBName { get; set; } = "";
+            public string EngineName { get; set; } = "";
+        }
+
+        private void comboBox4_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
