@@ -448,20 +448,28 @@ VALUES
 
         private void button3_Click(object sender, EventArgs e)
         {
-            using (OpenFileDialog ofd = new OpenFileDialog())
+            try
             {
-                ofd.Title = "Select a Filer";
-                ofd.Filter = "CSV Files (*.csv)|*.csv";
-                ofd.DefaultExt = "csv";
-                if (ofd.ShowDialog() == DialogResult.OK)
+                using (OpenFileDialog ofd = new OpenFileDialog())
                 {
-                    PathCSV = ofd.FileName;
-                    PopulateComboBox(comboBox1, "Data_Car", "MediaName");
-                    PopulateComboBox(comboBox2, "Data_Engine", "MediaName");
-                    PopulateComboBox(comboBox3, "Data_Car", "MediaName");
+                    ofd.Title = "Select a Filer";
+                    ofd.Filter = "CSV Files (*.csv)|*.csv";
+                    ofd.DefaultExt = "csv";
+                    if (ofd.ShowDialog() == DialogResult.OK)
+                    {
+                        PathCSV = ofd.FileName;
+                        PopulateComboBox(comboBox1, "Data_Car", "MediaName");
+                        PopulateComboBox(comboBox2, "Data_Engine", "MediaName");
+                        PopulateComboBox(comboBox3, "Data_Car", "MediaName");
+                    }
                 }
+                ImportEngineNamesFromCsv(PathCSV);
             }
-            ImportEngineNamesFromCsv(PathCSV);
+            catch (Exception ex)
+            {
+
+            }
+            
 
         }
 
