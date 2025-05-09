@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.Windows.Forms;
+using ForzaSwapper.src;
+
 
 namespace ForzaSwapper
 {
@@ -469,7 +471,7 @@ VALUES
             {
 
             }
-            
+
 
         }
 
@@ -507,27 +509,27 @@ VALUES
 
             MessageBox.Show("Engine names imported successfully from CSV.");
         }
-
+        /*
         public class MediaItem
         {
             public int Id { get; set; }
             public string MediaName { get; set; }
             public override string ToString() => MediaName;
         }
-
+        
         public class MediaEngineItem
         {
             public string EngineID { get; set; }
             public string MediaName { get; set; }
             public override string ToString() => MediaName;
         }
-
+        
         public class EngineMapping
         {
             public string CarDBName { get; set; } = "";
             public string EngineName { get; set; } = "";
         }
-
+        */
         private void comboBox4_SelectedIndexChanged(object sender, EventArgs e)
         {
 
