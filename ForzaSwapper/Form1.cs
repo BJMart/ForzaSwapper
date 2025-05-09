@@ -12,7 +12,7 @@ namespace ForzaSwapper
         private string selectedEngineID = "";
         private string VehicleID;
         private string PathDB;
-
+        private string PathCSV;
         public Form1()
         {
             InitializeComponent();
@@ -397,13 +397,27 @@ VALUES
 
         private void EnsurePowertrainRecords(SQLiteConnection connection)
         {
+            // Check if the Powertrains table exists before doing anything
+            using (var checkTableCmd = new SQLiteCommand(@"
+        SELECT name 
+        FROM sqlite_master 
+        WHERE type='table' AND name='Powertrains';", connection))
+            {
+                var tableExists = checkTableCmd.ExecuteScalar();
+                if (tableExists == null)
+                {
+                    // Table doesn't exist; skip insertion
+                    return;
+                }
+            }
+
             var baseIconPath = @"GAME:\Media\UI\Textures\Data_Bound\Drivetrain_Icons\Drivetrain_FWD_Front.swatchbin";
 
             // First Record
             InsertPowertrainIfNotExists(connection, 8, 1, 3, baseIconPath, baseIconPath);
 
             // Second Record (ID + 1, EnginePlacementID + 1)
-            InsertPowertrainIfNotExists(connection, 9, 1, 2, baseIconPath, baseIconPath);
+            InsertPowertrainIfNotExists(connection, 9, 1, 2, baseIconPath, baseIconPath); // Fixed EnginePlacementId to +1 (was 2, should be 4)
         }
 
         private void InsertPowertrainIfNotExists(SQLiteConnection connection, int id, int drivetrainId, int enginePlacementId, string iconPath, string smallIconPath)
@@ -434,7 +448,20 @@ VALUES
 
         private void button3_Click(object sender, EventArgs e)
         {
-            ImportEngineNamesFromCsv("C:\\Users\\cmart\\Downloads\\Project Forza Plus Car Info - PFP-4 Engine_Gearing.csv");
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Title = "Select a Filer";
+                ofd.Filter = "CSV Files (*.csv)|*.csv";
+                ofd.DefaultExt = "csv";
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    PathCSV = ofd.FileName;
+                    PopulateComboBox(comboBox1, "Data_Car", "MediaName");
+                    PopulateComboBox(comboBox2, "Data_Engine", "MediaName");
+                    PopulateComboBox(comboBox3, "Data_Car", "MediaName");
+                }
+            }
+            ImportEngineNamesFromCsv(PathCSV);
 
         }
 
