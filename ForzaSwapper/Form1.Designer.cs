@@ -43,13 +43,13 @@
             listBox1 = new ListBox();
             label4 = new Label();
             tabPage3 = new TabPage();
+            radioButton5 = new RadioButton();
+            radioButton4 = new RadioButton();
+            radioButton3 = new RadioButton();
             label2 = new Label();
             comboBox4 = new ComboBox();
             comboBox3 = new ComboBox();
             button3 = new Button();
-            radioButton3 = new RadioButton();
-            radioButton4 = new RadioButton();
-            radioButton5 = new RadioButton();
             ((System.ComponentModel.ISupportInitialize)dgvSwaps).BeginInit();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
@@ -60,9 +60,9 @@
             // comboBox1
             // 
             comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(26, 6);
+            comboBox1.Location = new Point(3, 148);
             comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(121, 23);
+            comboBox1.Size = new Size(84, 23);
             comboBox1.TabIndex = 0;
             comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
             // 
@@ -132,7 +132,7 @@
             tabPage1.Controls.Add(textBox1);
             tabPage1.Location = new Point(4, 24);
             tabPage1.Name = "tabPage1";
-            tabPage1.Padding = new Padding(3, 3, 3, 3);
+            tabPage1.Padding = new Padding(3);
             tabPage1.Size = new Size(698, 418);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Handling Mods";
@@ -174,13 +174,11 @@
             tabPage2.Controls.Add(listBox1);
             tabPage2.Controls.Add(dgvSwaps);
             tabPage2.Controls.Add(button2);
-            tabPage2.Controls.Add(comboBox1);
-            tabPage2.Controls.Add(label4);
             tabPage2.Controls.Add(label1);
             tabPage2.Controls.Add(comboBox2);
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
-            tabPage2.Padding = new Padding(3, 3, 3, 3);
+            tabPage2.Padding = new Padding(3);
             tabPage2.Size = new Size(698, 418);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Engine Swapper";
@@ -198,7 +196,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(153, 9);
+            label4.Location = new Point(33, 174);
             label4.Name = "label4";
             label4.Size = new Size(25, 15);
             label4.TabIndex = 3;
@@ -221,6 +219,39 @@
             tabPage3.TabIndex = 2;
             tabPage3.Text = "DriveTrain Edit";
             tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // radioButton5
+            // 
+            radioButton5.AutoSize = true;
+            radioButton5.Location = new Point(21, 180);
+            radioButton5.Name = "radioButton5";
+            radioButton5.Size = new Size(50, 19);
+            radioButton5.TabIndex = 2;
+            radioButton5.TabStop = true;
+            radioButton5.Text = "FWD";
+            radioButton5.UseVisualStyleBackColor = true;
+            // 
+            // radioButton4
+            // 
+            radioButton4.AutoSize = true;
+            radioButton4.Location = new Point(21, 155);
+            radioButton4.Name = "radioButton4";
+            radioButton4.Size = new Size(51, 19);
+            radioButton4.TabIndex = 2;
+            radioButton4.TabStop = true;
+            radioButton4.Text = "AWD";
+            radioButton4.UseVisualStyleBackColor = true;
+            // 
+            // radioButton3
+            // 
+            radioButton3.AutoSize = true;
+            radioButton3.Location = new Point(21, 130);
+            radioButton3.Name = "radioButton3";
+            radioButton3.Size = new Size(51, 19);
+            radioButton3.TabIndex = 2;
+            radioButton3.TabStop = true;
+            radioButton3.Text = "RWD";
+            radioButton3.UseVisualStyleBackColor = true;
             // 
             // label2
             // 
@@ -262,39 +293,6 @@
             button3.UseVisualStyleBackColor = true;
             button3.Click += button3_Click;
             // 
-            // radioButton3
-            // 
-            radioButton3.AutoSize = true;
-            radioButton3.Location = new Point(21, 130);
-            radioButton3.Name = "radioButton3";
-            radioButton3.Size = new Size(51, 19);
-            radioButton3.TabIndex = 2;
-            radioButton3.TabStop = true;
-            radioButton3.Text = "RWD";
-            radioButton3.UseVisualStyleBackColor = true;
-            // 
-            // radioButton4
-            // 
-            radioButton4.AutoSize = true;
-            radioButton4.Location = new Point(21, 155);
-            radioButton4.Name = "radioButton4";
-            radioButton4.Size = new Size(51, 19);
-            radioButton4.TabIndex = 2;
-            radioButton4.TabStop = true;
-            radioButton4.Text = "AWD";
-            radioButton4.UseVisualStyleBackColor = true;
-            // 
-            // radioButton5
-            // 
-            radioButton5.AutoSize = true;
-            radioButton5.Location = new Point(21, 180);
-            radioButton5.Name = "radioButton5";
-            radioButton5.Size = new Size(50, 19);
-            radioButton5.TabIndex = 2;
-            radioButton5.TabStop = true;
-            radioButton5.Text = "FWD";
-            radioButton5.UseVisualStyleBackColor = true;
-            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -303,6 +301,8 @@
             Controls.Add(tabControl1);
             Controls.Add(button3);
             Controls.Add(button1);
+            Controls.Add(label4);
+            Controls.Add(comboBox1);
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
@@ -315,6 +315,7 @@
             tabPage3.ResumeLayout(false);
             tabPage3.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

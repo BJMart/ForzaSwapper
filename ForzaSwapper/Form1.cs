@@ -530,7 +530,10 @@ VALUES
 
         private void comboBox4_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (comboBox4.Text == "RWD")
+            {
 
+            }
         }
     }
 }
