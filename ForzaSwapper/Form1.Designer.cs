@@ -41,14 +41,12 @@
             textBox1 = new TextBox();
             tabPage2 = new TabPage();
             listBox1 = new ListBox();
-            label4 = new Label();
             tabPage3 = new TabPage();
             radioButton5 = new RadioButton();
             radioButton4 = new RadioButton();
             radioButton3 = new RadioButton();
-            label2 = new Label();
             comboBox4 = new ComboBox();
-            comboBox3 = new ComboBox();
+            label4 = new Label();
             button3 = new Button();
             ((System.ComponentModel.ISupportInitialize)dgvSwaps).BeginInit();
             tabControl1.SuspendLayout();
@@ -193,24 +191,12 @@
             listBox1.Size = new Size(469, 94);
             listBox1.TabIndex = 4;
             // 
-            // label4
-            // 
-            label4.AutoSize = true;
-            label4.Location = new Point(33, 174);
-            label4.Name = "label4";
-            label4.Size = new Size(25, 15);
-            label4.TabIndex = 3;
-            label4.Text = "Car";
-            label4.Click += label4_Click;
-            // 
             // tabPage3
             // 
             tabPage3.Controls.Add(radioButton5);
             tabPage3.Controls.Add(radioButton4);
             tabPage3.Controls.Add(radioButton3);
-            tabPage3.Controls.Add(label2);
             tabPage3.Controls.Add(comboBox4);
-            tabPage3.Controls.Add(comboBox3);
             tabPage3.Location = new Point(4, 24);
             tabPage3.Margin = new Padding(3, 2, 3, 2);
             tabPage3.Name = "tabPage3";
@@ -253,15 +239,6 @@
             radioButton3.Text = "RWD";
             radioButton3.UseVisualStyleBackColor = true;
             // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new Point(165, 20);
-            label2.Name = "label2";
-            label2.Size = new Size(25, 15);
-            label2.TabIndex = 1;
-            label2.Text = "Car";
-            // 
             // comboBox4
             // 
             comboBox4.FormattingEnabled = true;
@@ -273,15 +250,15 @@
             comboBox4.TabIndex = 0;
             comboBox4.SelectedIndexChanged += comboBox4_SelectedIndexChanged;
             // 
-            // comboBox3
+            // label4
             // 
-            comboBox3.FormattingEnabled = true;
-            comboBox3.Location = new Point(21, 16);
-            comboBox3.Margin = new Padding(3, 2, 3, 2);
-            comboBox3.Name = "comboBox3";
-            comboBox3.Size = new Size(133, 23);
-            comboBox3.TabIndex = 0;
-            comboBox3.SelectedIndexChanged += comboBox3_SelectedIndexChanged;
+            label4.AutoSize = true;
+            label4.Location = new Point(33, 174);
+            label4.Name = "label4";
+            label4.Size = new Size(25, 15);
+            label4.TabIndex = 3;
+            label4.Text = "Car";
+            label4.Click += label4_Click;
             // 
             // button3
             // 
@@ -336,8 +313,6 @@
         private ListBox listBox1;
         private Button button3;
         private TabPage tabPage3;
-        private Label label2;
-        private ComboBox comboBox3;
         private ComboBox comboBox4;
         private RadioButton radioButton5;
         private RadioButton radioButton4;

@@ -32,7 +32,7 @@ namespace ForzaSwapper
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     PathDB = ofd.FileName;
-                    PopulateComboBox(new ComboBox[] { comboBox1, comboBox3 }, "Data_Car", "MediaName");
+                    PopulateComboBox(new ComboBox[] { comboBox1}, "Data_Car", "MediaName");
                     PopulateComboBox(new ComboBox[] { comboBox2 }, "Data_Engine", "MediaName");
                 }
             }
@@ -107,7 +107,10 @@ namespace ForzaSwapper
                 LoadFilteredSwaps(selectedId);
                 VehicleID = selectedId.ToString();
                 UpdateCurrentEngineList();
+                PopulateDrivetrainComboBox(Convert.ToInt32(VehicleID));
+
             }
+
         }
 
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
@@ -119,16 +122,6 @@ namespace ForzaSwapper
             }
         }
 
-        private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (comboBox3.SelectedValue is int selectedId)
-            {
-                LoadFilteredSwaps(selectedId);
-                VehicleID = selectedId.ToString();
-                UpdateCurrentEngineList();
-                PopulateDrivetrainComboBox(Convert.ToInt32(VehicleID));
-            }
-        }
 
         private void PopulateDrivetrainComboBox(int vehicleId)
         {
@@ -463,7 +456,7 @@ VALUES
                     if (ofd.ShowDialog() == DialogResult.OK)
                     {
                         PathCSV = ofd.FileName;
-                        PopulateComboBox(new ComboBox[] { comboBox1, comboBox3 }, "Data_Car", "MediaName");
+                        PopulateComboBox(new ComboBox[] { comboBox1 }, "Data_Car", "MediaName");
                         PopulateComboBox(new ComboBox[] { comboBox2 }, "Data_Engine", "MediaName");
                     }
                 }
