@@ -32,16 +32,16 @@ namespace ForzaSwapper
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     PathDB = ofd.FileName;
-                    PopulateComboBox(new ComboBox[] { comboBox1, comboBox3 }, "Data_Car", "MediaName");
-                    PopulateComboBox(new ComboBox[] { comboBox2 }, "Data_Engine", "MediaName");
+                    PopulateComboBox(comboBox1, "Data_Car", "MediaName");
+                    PopulateComboBox(comboBox2, "Data_Engine", "MediaName");
+                    PopulateComboBox(comboBox3, "Data_Car", "MediaName");
                 }
             }
         }
 
-        private void PopulateComboBox(ComboBox[] comboBoxes, string tableName, string columnName)
+        private void PopulateComboBox(ComboBox comboBox, string tableName, string columnName)
         {
             string connectionString = $@"Data Source={PathDB};Version=3;";
-
             try
             {
                 using var connection = new SQLiteConnection(connectionString);
@@ -54,42 +54,39 @@ namespace ForzaSwapper
                 DataTable table = new DataTable();
                 adapter.Fill(table);
 
-                foreach (var cb in comboBoxes)
+                if (tableName == "Data_Car")
                 {
-                    if (tableName == "Data_Car")
+                    command.CommandText = $"SELECT Id, {columnName} FROM {tableName} ORDER BY {columnName}";
+                    var items = new List<MediaItem>();
+                    using var reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        command.CommandText = $"SELECT Id, {columnName} FROM {tableName} ORDER BY {columnName}";
-                        var items = new List<MediaItem>();
-                        using var reader = command.ExecuteReader();
-                        while (reader.Read())
+                        items.Add(new MediaItem
                         {
-                            items.Add(new MediaItem
-                            {
-                                Id = reader.GetInt32(0),
-                                MediaName = reader.GetString(1)
-                            });
-                        }
-                        cb.DataSource = items;
-                        cb.DisplayMember = "MediaName";
-                        cb.ValueMember = "Id";
+                            Id = reader.GetInt32(0),
+                            MediaName = reader.GetString(1)
+                        });
                     }
-                    else if (tableName == "Data_Engine")
+                    comboBox.DataSource = items;
+                    comboBox.DisplayMember = "MediaName";
+                    comboBox.ValueMember = "Id";
+                }
+                else if (tableName == "Data_Engine")
+                {
+                    command.CommandText = $"SELECT EngineID, {columnName} FROM {tableName} ORDER BY {columnName}";
+                    var items = new List<MediaEngineItem>();
+                    using var reader = command.ExecuteReader();
+                    while (reader.Read())
                     {
-                        command.CommandText = $"SELECT EngineID, {columnName} FROM {tableName} ORDER BY {columnName}";
-                        var items = new List<MediaEngineItem>();
-                        using var reader = command.ExecuteReader();
-                        while (reader.Read())
+                        items.Add(new MediaEngineItem
                         {
-                            items.Add(new MediaEngineItem
-                            {
-                                EngineID = reader["EngineID"].ToString(),
-                                MediaName = reader.GetString(1)
-                            });
-                        }
-                        cb.DataSource = items;
-                        cb.DisplayMember = "MediaName";
-                        cb.ValueMember = "EngineID";
+                            EngineID = reader["EngineID"].ToString(),
+                            MediaName = reader.GetString(1)
+                        });
                     }
+                    comboBox.DataSource = items;
+                    comboBox.DisplayMember = "MediaName";
+                    comboBox.ValueMember = "EngineID";
                 }
 
                 dgvSwaps.DataSource = table;
@@ -463,8 +460,9 @@ VALUES
                     if (ofd.ShowDialog() == DialogResult.OK)
                     {
                         PathCSV = ofd.FileName;
-                        PopulateComboBox(new ComboBox[] { comboBox1, comboBox3 }, "Data_Car", "MediaName");
-                        PopulateComboBox(new ComboBox[] { comboBox2 }, "Data_Engine", "MediaName");
+                        PopulateComboBox(comboBox1, "Data_Car", "MediaName");
+                        PopulateComboBox(comboBox2, "Data_Engine", "MediaName");
+                        PopulateComboBox(comboBox3, "Data_Car", "MediaName");
                     }
                 }
                 ImportEngineNamesFromCsv(PathCSV);
