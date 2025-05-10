@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            comboBox1 = new ComboBox();
+            CarSelectorComboBox = new ComboBox();
             dgvSwaps = new DataGridView();
             comboBox2 = new ComboBox();
             button1 = new Button();
@@ -46,23 +46,30 @@
             radioButton4 = new RadioButton();
             radioButton3 = new RadioButton();
             comboBox4 = new ComboBox();
-            label4 = new Label();
+            CarSelectorLabel = new Label();
             button3 = new Button();
+            BackTable = new TableLayoutPanel();
+            LeftBarTable = new TableLayoutPanel();
+            CarSelectorTable = new TableLayoutPanel();
             ((System.ComponentModel.ISupportInitialize)dgvSwaps).BeginInit();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
             tabPage3.SuspendLayout();
+            BackTable.SuspendLayout();
+            LeftBarTable.SuspendLayout();
+            CarSelectorTable.SuspendLayout();
             SuspendLayout();
             // 
-            // comboBox1
+            // CarSelectorComboBox
             // 
-            comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(3, 148);
-            comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(84, 23);
-            comboBox1.TabIndex = 0;
-            comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
+            CarSelectorComboBox.Dock = DockStyle.Fill;
+            CarSelectorComboBox.FormattingEnabled = true;
+            CarSelectorComboBox.Location = new Point(3, 3);
+            CarSelectorComboBox.Name = "CarSelectorComboBox";
+            CarSelectorComboBox.Size = new Size(86, 23);
+            CarSelectorComboBox.TabIndex = 0;
+            CarSelectorComboBox.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
             // 
             // dgvSwaps
             // 
@@ -84,9 +91,10 @@
             // 
             // button1
             // 
-            button1.Location = new Point(3, 12);
+            button1.Dock = DockStyle.Fill;
+            button1.Location = new Point(3, 3);
             button1.Name = "button1";
-            button1.Size = new Size(88, 60);
+            button1.Size = new Size(132, 69);
             button1.TabIndex = 2;
             button1.Text = "DB Location";
             button1.UseVisualStyleBackColor = true;
@@ -117,10 +125,11 @@
             tabControl1.Controls.Add(tabPage1);
             tabControl1.Controls.Add(tabPage2);
             tabControl1.Controls.Add(tabPage3);
-            tabControl1.Location = new Point(93, 3);
+            tabControl1.Dock = DockStyle.Fill;
+            tabControl1.Location = new Point(147, 3);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(706, 446);
+            tabControl1.Size = new Size(650, 444);
             tabControl1.TabIndex = 5;
             // 
             // tabPage1
@@ -131,7 +140,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(698, 418);
+            tabPage1.Size = new Size(642, 416);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Handling Mods";
             tabPage1.UseVisualStyleBackColor = true;
@@ -177,7 +186,7 @@
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(698, 418);
+            tabPage2.Size = new Size(642, 416);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Engine Swapper";
             tabPage2.UseVisualStyleBackColor = true;
@@ -201,7 +210,7 @@
             tabPage3.Margin = new Padding(3, 2, 3, 2);
             tabPage3.Name = "tabPage3";
             tabPage3.Padding = new Padding(3, 2, 3, 2);
-            tabPage3.Size = new Size(698, 418);
+            tabPage3.Size = new Size(642, 416);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "DriveTrain Edit";
             tabPage3.UseVisualStyleBackColor = true;
@@ -250,36 +259,82 @@
             comboBox4.TabIndex = 0;
             comboBox4.SelectedIndexChanged += comboBox4_SelectedIndexChanged;
             // 
-            // label4
+            // CarSelectorLabel
             // 
-            label4.AutoSize = true;
-            label4.Location = new Point(33, 174);
-            label4.Name = "label4";
-            label4.Size = new Size(25, 15);
-            label4.TabIndex = 3;
-            label4.Text = "Car";
-            label4.Click += label4_Click;
+            CarSelectorLabel.AutoSize = true;
+            CarSelectorLabel.Dock = DockStyle.Fill;
+            CarSelectorLabel.Location = new Point(95, 0);
+            CarSelectorLabel.Name = "CarSelectorLabel";
+            CarSelectorLabel.Size = new Size(34, 34);
+            CarSelectorLabel.TabIndex = 3;
+            CarSelectorLabel.Text = "Car";
+            CarSelectorLabel.Click += label4_Click;
             // 
             // button3
             // 
+            button3.Dock = DockStyle.Fill;
             button3.Location = new Point(3, 78);
             button3.Name = "button3";
-            button3.Size = new Size(88, 64);
+            button3.Size = new Size(132, 69);
             button3.TabIndex = 2;
             button3.Text = "Engine Name Spreadsheet";
             button3.UseVisualStyleBackColor = true;
             button3.Click += button3_Click;
+            // 
+            // BackTable
+            // 
+            BackTable.ColumnCount = 2;
+            BackTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 18.0400887F));
+            BackTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 81.95991F));
+            BackTable.Controls.Add(tabControl1, 1, 0);
+            BackTable.Controls.Add(LeftBarTable, 0, 0);
+            BackTable.Dock = DockStyle.Fill;
+            BackTable.Location = new Point(0, 0);
+            BackTable.Name = "BackTable";
+            BackTable.RowCount = 1;
+            BackTable.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            BackTable.Size = new Size(800, 450);
+            BackTable.TabIndex = 6;
+            // 
+            // LeftBarTable
+            // 
+            LeftBarTable.ColumnCount = 1;
+            LeftBarTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            LeftBarTable.Controls.Add(button1, 0, 0);
+            LeftBarTable.Controls.Add(button3, 0, 1);
+            LeftBarTable.Controls.Add(CarSelectorTable, 0, 2);
+            LeftBarTable.Dock = DockStyle.Fill;
+            LeftBarTable.Location = new Point(3, 3);
+            LeftBarTable.Name = "LeftBarTable";
+            LeftBarTable.RowCount = 4;
+            LeftBarTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 75F));
+            LeftBarTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 75F));
+            LeftBarTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
+            LeftBarTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 91F));
+            LeftBarTable.Size = new Size(138, 444);
+            LeftBarTable.TabIndex = 6;
+            // 
+            // CarSelectorTable
+            // 
+            CarSelectorTable.ColumnCount = 2;
+            CarSelectorTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 70F));
+            CarSelectorTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
+            CarSelectorTable.Controls.Add(CarSelectorComboBox, 0, 0);
+            CarSelectorTable.Controls.Add(CarSelectorLabel, 1, 0);
+            CarSelectorTable.Dock = DockStyle.Fill;
+            CarSelectorTable.Location = new Point(3, 153);
+            CarSelectorTable.Name = "CarSelectorTable";
+            CarSelectorTable.RowCount = 1;
+            CarSelectorTable.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            CarSelectorTable.Size = new Size(132, 34);
+            CarSelectorTable.TabIndex = 3;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
-            Controls.Add(tabControl1);
-            Controls.Add(button3);
-            Controls.Add(button1);
-            Controls.Add(label4);
-            Controls.Add(comboBox1);
+            Controls.Add(BackTable);
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
@@ -291,13 +346,16 @@
             tabPage2.PerformLayout();
             tabPage3.ResumeLayout(false);
             tabPage3.PerformLayout();
+            BackTable.ResumeLayout(false);
+            LeftBarTable.ResumeLayout(false);
+            CarSelectorTable.ResumeLayout(false);
+            CarSelectorTable.PerformLayout();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
 
-        private ComboBox comboBox1;
+        private ComboBox CarSelectorComboBox;
         private DataGridView dgvSwaps;
         private ComboBox comboBox2;
         private Button button1;
@@ -309,7 +367,7 @@
         private RadioButton radioButton1;
         private TextBox textBox1;
         private RadioButton radioButton2;
-        private Label label4;
+        private Label CarSelectorLabel;
         private ListBox listBox1;
         private Button button3;
         private TabPage tabPage3;
@@ -317,5 +375,8 @@
         private RadioButton radioButton5;
         private RadioButton radioButton4;
         private RadioButton radioButton3;
+        private TableLayoutPanel BackTable;
+        private TableLayoutPanel LeftBarTable;
+        private TableLayoutPanel CarSelectorTable;
     }
 }
