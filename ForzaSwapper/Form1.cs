@@ -32,13 +32,13 @@ namespace ForzaSwapper
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     PathDB = ofd.FileName;
-                    PopulateComboBox(new ComboBox[] { comboBox1}, "Data_Car", "MediaName");
+                    PopulateComboBox(new ComboBox[] { comboBox1 }, "Data_Car", "MediaName");
                     PopulateComboBox(new ComboBox[] { comboBox2 }, "Data_Engine", "MediaName");
                 }
             }
         }
 
-        private void PopulateComboBox(ComboBox comboBox, string tableName, string columnName)
+        private void PopulateComboBox(ComboBox[] comboBoxes, string tableName, string columnName)
         {
             string connectionString = $@"Data Source={PathDB};Version=3;";
             try
@@ -53,39 +53,42 @@ namespace ForzaSwapper
                 DataTable table = new DataTable();
                 adapter.Fill(table);
 
-                if (tableName == "Data_Car")
+                foreach (var cb in comboBoxes)
                 {
-                    command.CommandText = $"SELECT Id, {columnName} FROM {tableName} ORDER BY {columnName}";
-                    var items = new List<MediaItem>();
-                    using var reader = command.ExecuteReader();
-                    while (reader.Read())
+                    if (tableName == "Data_Car")
                     {
-                        items.Add(new MediaItem
+                        command.CommandText = $"SELECT Id, {columnName} FROM {tableName} ORDER BY {columnName}";
+                        var items = new List<MediaItem>();
+                        using var reader = command.ExecuteReader();
+                        while (reader.Read())
                         {
-                            Id = reader.GetInt32(0),
-                            MediaName = reader.GetString(1)
-                        });
+                            items.Add(new MediaItem
+                            {
+                                Id = reader.GetInt32(0),
+                                MediaName = reader.GetString(1)
+                            });
+                        }
+                        cb.DataSource = items;
+                        cb.DisplayMember = "MediaName";
+                        cb.ValueMember = "Id";
                     }
-                    comboBox.DataSource = items;
-                    comboBox.DisplayMember = "MediaName";
-                    comboBox.ValueMember = "Id";
-                }
-                else if (tableName == "Data_Engine")
-                {
-                    command.CommandText = $"SELECT EngineID, {columnName} FROM {tableName} ORDER BY {columnName}";
-                    var items = new List<MediaEngineItem>();
-                    using var reader = command.ExecuteReader();
-                    while (reader.Read())
+                    else if (tableName == "Data_Engine")
                     {
-                        items.Add(new MediaEngineItem
+                        command.CommandText = $"SELECT EngineID, {columnName} FROM {tableName} ORDER BY {columnName}";
+                        var items = new List<MediaEngineItem>();
+                        using var reader = command.ExecuteReader();
+                        while (reader.Read())
                         {
-                            EngineID = reader["EngineID"].ToString(),
-                            MediaName = reader.GetString(1)
-                        });
+                            items.Add(new MediaEngineItem
+                            {
+                                EngineID = reader["EngineID"].ToString(),
+                                MediaName = reader.GetString(1)
+                            });
+                        }
+                        cb.DataSource = items;
+                        cb.DisplayMember = "MediaName";
+                        cb.ValueMember = "EngineID";
                     }
-                    comboBox.DataSource = items;
-                    comboBox.DisplayMember = "MediaName";
-                    comboBox.ValueMember = "EngineID";
                 }
 
                 dgvSwaps.DataSource = table;
