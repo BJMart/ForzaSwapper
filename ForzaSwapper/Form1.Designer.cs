@@ -60,7 +60,7 @@
             comboBox1.FormattingEnabled = true;
             comboBox1.Location = new Point(3, 148);
             comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(84, 23);
+            comboBox1.Size = new Size(186, 23);
             comboBox1.TabIndex = 0;
             comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
             // 
@@ -86,7 +86,7 @@
             // 
             button1.Location = new Point(3, 12);
             button1.Name = "button1";
-            button1.Size = new Size(88, 60);
+            button1.Size = new Size(186, 60);
             button1.TabIndex = 2;
             button1.Text = "DB Location";
             button1.UseVisualStyleBackColor = true;
@@ -117,7 +117,7 @@
             tabControl1.Controls.Add(tabPage1);
             tabControl1.Controls.Add(tabPage2);
             tabControl1.Controls.Add(tabPage3);
-            tabControl1.Location = new Point(93, 3);
+            tabControl1.Location = new Point(195, 2);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
             tabControl1.Size = new Size(706, 446);
@@ -209,7 +209,7 @@
             // radioButton5
             // 
             radioButton5.AutoSize = true;
-            radioButton5.Location = new Point(21, 180);
+            radioButton5.Location = new Point(21, 99);
             radioButton5.Name = "radioButton5";
             radioButton5.Size = new Size(50, 19);
             radioButton5.TabIndex = 2;
@@ -220,7 +220,7 @@
             // radioButton4
             // 
             radioButton4.AutoSize = true;
-            radioButton4.Location = new Point(21, 155);
+            radioButton4.Location = new Point(21, 74);
             radioButton4.Name = "radioButton4";
             radioButton4.Size = new Size(51, 19);
             radioButton4.TabIndex = 2;
@@ -231,7 +231,7 @@
             // radioButton3
             // 
             radioButton3.AutoSize = true;
-            radioButton3.Location = new Point(21, 130);
+            radioButton3.Location = new Point(21, 49);
             radioButton3.Name = "radioButton3";
             radioButton3.Size = new Size(51, 19);
             radioButton3.TabIndex = 2;
@@ -243,7 +243,7 @@
             // 
             comboBox4.FormattingEnabled = true;
             comboBox4.Items.AddRange(new object[] { "FWD", "RWD", "AWD" });
-            comboBox4.Location = new Point(21, 96);
+            comboBox4.Location = new Point(21, 22);
             comboBox4.Margin = new Padding(3, 2, 3, 2);
             comboBox4.Name = "comboBox4";
             comboBox4.Size = new Size(133, 23);
@@ -253,7 +253,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(33, 174);
+            label4.Location = new Point(81, 174);
             label4.Name = "label4";
             label4.Size = new Size(25, 15);
             label4.TabIndex = 3;
@@ -264,7 +264,7 @@
             // 
             button3.Location = new Point(3, 78);
             button3.Name = "button3";
-            button3.Size = new Size(88, 64);
+            button3.Size = new Size(186, 64);
             button3.TabIndex = 2;
             button3.Text = "Engine Name Spreadsheet";
             button3.UseVisualStyleBackColor = true;
@@ -274,7 +274,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(903, 450);
             Controls.Add(tabControl1);
             Controls.Add(button3);
             Controls.Add(button1);
