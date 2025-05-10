@@ -532,7 +532,15 @@ VALUES
         {
             if (comboBox4.Text == "RWD")
             {
-
+                radioButton3.Checked = true;
+            }
+            if (comboBox4.Text == "AWD")
+            {
+                radioButton4.Checked = true;
+            }
+            if(comboBox4.Text == "FWD")
+            {
+                radioButton5.Checked = true;
             }
         }
     }

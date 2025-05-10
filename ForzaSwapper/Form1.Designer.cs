@@ -76,6 +76,7 @@
             CarSelectorComboBox.Size = new Size(120, 23);
             CarSelectorComboBox.TabIndex = 0;
             CarSelectorComboBox.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
+
             // 
             // dgvSwaps
             // 
@@ -103,6 +104,7 @@
             button1.Location = new Point(3, 3);
             button1.Name = "button1";
             button1.Size = new Size(163, 69);
+
             button1.TabIndex = 2;
             button1.Text = "DB Location";
             button1.UseVisualStyleBackColor = true;
@@ -271,7 +273,7 @@
             // radioButton5
             // 
             radioButton5.AutoSize = true;
-            radioButton5.Location = new Point(21, 180);
+            radioButton5.Location = new Point(21, 99);
             radioButton5.Name = "radioButton5";
             radioButton5.Size = new Size(50, 19);
             radioButton5.TabIndex = 2;
@@ -282,7 +284,7 @@
             // radioButton4
             // 
             radioButton4.AutoSize = true;
-            radioButton4.Location = new Point(21, 155);
+            radioButton4.Location = new Point(21, 74);
             radioButton4.Name = "radioButton4";
             radioButton4.Size = new Size(51, 19);
             radioButton4.TabIndex = 2;
@@ -293,7 +295,7 @@
             // radioButton3
             // 
             radioButton3.AutoSize = true;
-            radioButton3.Location = new Point(21, 130);
+            radioButton3.Location = new Point(21, 49);
             radioButton3.Name = "radioButton3";
             radioButton3.Size = new Size(51, 19);
             radioButton3.TabIndex = 2;
@@ -305,7 +307,7 @@
             // 
             comboBox4.FormattingEnabled = true;
             comboBox4.Items.AddRange(new object[] { "FWD", "RWD", "AWD" });
-            comboBox4.Location = new Point(21, 96);
+            comboBox4.Location = new Point(21, 22);
             comboBox4.Margin = new Padding(3, 2, 3, 2);
             comboBox4.Name = "comboBox4";
             comboBox4.Size = new Size(133, 23);
@@ -322,6 +324,7 @@
             CarSelectorLabel.TabIndex = 3;
             CarSelectorLabel.Text = "Car";
             CarSelectorLabel.Click += label4_Click;
+
             // 
             // button3
             // 
@@ -329,6 +332,7 @@
             button3.Location = new Point(3, 78);
             button3.Name = "button3";
             button3.Size = new Size(163, 69);
+
             button3.TabIndex = 2;
             button3.Text = "Engine Name Spreadsheet";
             button3.UseVisualStyleBackColor = true;
@@ -388,6 +392,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1033, 669);
             Controls.Add(BackTable);
+
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
