@@ -1,4 +1,4 @@
-
+﻿
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -15,6 +15,7 @@ namespace ForzaSwapper
         private string VehicleID;
         private string PathDB;
         private string PathCSV;
+        private int SelectedDriveType;
         public Form1()
         {
             InitializeComponent();
@@ -188,64 +189,64 @@ namespace ForzaSwapper
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(selectedEngineID) || string.IsNullOrEmpty(VehicleID))
+            private void button2_Click(object sender, EventArgs e)
             {
-                MessageBox.Show($"Please select both a car and an engine.\nVehicleID: {VehicleID}\nEngineID: {selectedEngineID}");
-                return;
-            }
-
-            try
-            {
-                using var connection = new SQLiteConnection($@"Data Source={PathDB};Version=3;");
-                connection.Open();
-
-                // Get previous row
-                string getLastRowQuery = "SELECT Level, ManufacturerID FROM List_UpgradeEngine WHERE Ordinal = @vehicleID ORDER BY rowid DESC LIMIT 1";
-                var getLastCmd = new SQLiteCommand(getLastRowQuery, connection);
-                getLastCmd.Parameters.AddWithValue("@vehicleID", VehicleID);
-                object levelResult = null, manufacturerResult = null;
-
-                using (var reader = getLastCmd.ExecuteReader())
+                if (string.IsNullOrEmpty(selectedEngineID) || string.IsNullOrEmpty(VehicleID))
                 {
-                    if (reader.Read())
-                    {
-                        levelResult = reader["Level"];
-                        manufacturerResult = reader["ManufacturerID"];
-                    }
+                    MessageBox.Show($"Please select both a car and an engine.\nVehicleID: {VehicleID}\nEngineID: {selectedEngineID}");
+                    return;
                 }
 
-                int nextLevel = (levelResult != null && int.TryParse(levelResult.ToString(), out int lastLevel)) ? lastLevel + 1 : 1;
-                string formattedLevel = nextLevel.ToString("D3");
-                string generatedId = VehicleID + formattedLevel;
-                string manufacturerID = manufacturerResult?.ToString() ?? "";
+                try
+                {
+                    using var connection = new SQLiteConnection($@"Data Source={PathDB};Version=3;");
+                    connection.Open();
 
-                // Get mass info
-                double selectedMass = GetEngineMass(connection, selectedEngineID);
-                string stockEngineID = GetStockEngineID(connection, VehicleID);
-                double stockMass = GetEngineMass(connection, stockEngineID);
-                double massDiff = selectedMass - stockMass;
+                    // Get previous row
+                    string getLastRowQuery = "SELECT Level, ManufacturerID FROM List_UpgradeEngine WHERE Ordinal = @vehicleID ORDER BY rowid DESC LIMIT 1";
+                    var getLastCmd = new SQLiteCommand(getLastRowQuery, connection);
+                    getLastCmd.Parameters.AddWithValue("@vehicleID", VehicleID);
+                    object levelResult = null, manufacturerResult = null;
 
-                // WeightDistDiff calculation
-                double weightDistDiff = CalculateWeightDistDiff(connection, VehicleID, massDiff);
+                    using (var reader = getLastCmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            levelResult = reader["Level"];
+                            manufacturerResult = reader["ManufacturerID"];
+                        }
+                    }
 
-                // Price = 20% of base cost
-                double price = GetEngineSwapPrice(connection, selectedEngineID);
+                    int nextLevel = (levelResult != null && int.TryParse(levelResult.ToString(), out int lastLevel)) ? lastLevel + 1 : 1;
+                    string formattedLevel = nextLevel.ToString("D3");
+                    string generatedId = VehicleID + formattedLevel;
+                    string manufacturerID = manufacturerResult?.ToString() ?? "";
 
-                // Insert record
-                string insertQuery = @"
-INSERT INTO List_UpgradeEngine 
-(Id, Ordinal, EngineID, Level, IsStock, ManufacturerID, Price, MassDiff, WeightDistDiff, DragScale, WindInstabilityScale) 
-VALUES 
-(@id, @vehicleID, @engineId, @level, 0, @manufacturerID, @price, @massDiff, @weightDistDiff, 1, 1)";
+                    // Get mass info
+                    double selectedMass = GetEngineMass(connection, selectedEngineID);
+                    string stockEngineID = GetStockEngineID(connection, VehicleID);
+                    double stockMass = GetEngineMass(connection, stockEngineID);
+                    double massDiff = selectedMass - stockMass;
 
-                using var insertCmd = new SQLiteCommand(insertQuery, connection);
-                insertCmd.Parameters.AddWithValue("@id", generatedId);
-                insertCmd.Parameters.AddWithValue("@vehicleID", VehicleID);
-                insertCmd.Parameters.AddWithValue("@engineId", selectedEngineID);
-                insertCmd.Parameters.AddWithValue("@level", formattedLevel);
-                insertCmd.Parameters.AddWithValue("@manufacturerID", manufacturerID);
+                    // WeightDistDiff calculation
+                    double weightDistDiff = CalculateWeightDistDiff(connection, VehicleID, massDiff);
+
+                    // Price = 20% of base cost
+                    double price = GetEngineSwapPrice(connection, selectedEngineID);
+
+                    // Insert record
+                    string insertQuery = @"
+    INSERT INTO List_UpgradeEngine 
+    (Id, Ordinal, EngineID, Level, IsStock, ManufacturerID, Price, MassDiff, WeightDistDiff, DragScale, WindInstabilityScale) 
+    VALUES 
+    (@id, @vehicleID, @engineId, @level, 0, @manufacturerID, @price, @massDiff, @weightDistDiff, 1, 1)";
+
+                    using var insertCmd = new SQLiteCommand(insertQuery, connection);
+                    insertCmd.Parameters.AddWithValue("@id", generatedId);
+                    insertCmd.Parameters.AddWithValue("@vehicleID", VehicleID);
+                    insertCmd.Parameters.AddWithValue("@engineId", selectedEngineID);
+                    insertCmd.Parameters.AddWithValue("@level", formattedLevel);
+                    insertCmd.Parameters.AddWithValue("@manufacturerID", manufacturerID);
                 insertCmd.Parameters.AddWithValue("@price", price);
                 insertCmd.Parameters.AddWithValue("@massDiff", massDiff);
                 insertCmd.Parameters.AddWithValue("@weightDistDiff", weightDistDiff);
@@ -533,15 +534,118 @@ VALUES
             if (comboBox4.Text == "RWD")
             {
                 radioButton3.Checked = true;
+                SelectedDriveType = 2;
             }
             if (comboBox4.Text == "AWD")
             {
                 radioButton4.Checked = true;
+                SelectedDriveType = 3;
             }
-            if(comboBox4.Text == "FWD")
+            if (comboBox4.Text == "FWD")
             {
                 radioButton5.Checked = true;
+                SelectedDriveType = 1;
             }
         }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void radioButton3_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void radioButton4_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void radioButton5_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(VehicleID))
+            {
+                MessageBox.Show("Please select a car first.");
+                return;
+            }
+
+            try
+            {
+                using var connection = new SQLiteConnection($@"Data Source={PathDB};Version=3;");
+                connection.Open();
+
+                var levelCompoundMap = new Dictionary<int, int>
+        {
+            { 1, 6 },
+            { 2, 9 },
+            { 3, 11 },
+            { 9, 14 },
+            { 4, 11 },
+            { 11, 12 },
+            { 5, 51 }
+        };
+
+                int insertedCount = 0;
+
+                foreach (var pair in levelCompoundMap)
+                {
+                    int level = pair.Key;
+                    int compoundId = pair.Value;
+                    string formattedLevel = level.ToString("D3");
+                    string generatedId = VehicleID + formattedLevel;
+
+                    // Check if this level already exists for the vehicle
+                    using var checkCmd = new SQLiteCommand("SELECT COUNT(1) FROM List_UpgradeTireCompound WHERE Ordinal = @vehicleID AND Level = @level", connection);
+                    checkCmd.Parameters.AddWithValue("@vehicleID", VehicleID);
+                    checkCmd.Parameters.AddWithValue("@level", formattedLevel);
+
+                    long exists = (long)checkCmd.ExecuteScalar();
+                    if (exists > 0)
+                        continue; // Skip this level if already present
+
+                    // Insert the new record
+                    string insertQuery = @"
+                INSERT INTO List_UpgradeTireCompound 
+                (Id, Ordinal, TireCompoundID, Level, ManufacturerID, Price, MassDiff, DragScale, WindInstabilityScale, RequiresGraphics, TireModelName, WetTireModelName, SnowTireModelName, IsStock) 
+                VALUES 
+                (@id, @vehicleID, @tireCompoundId, @level, 0, 1, 0.0, 1.0, 1.0, 0, 'WET_b', 'WET_b', 'WET_b', 0)";
+
+                    using var insertCmd = new SQLiteCommand(insertQuery, connection);
+                    insertCmd.Parameters.AddWithValue("@id", generatedId);
+                    insertCmd.Parameters.AddWithValue("@vehicleID", VehicleID);
+                    insertCmd.Parameters.AddWithValue("@tireCompoundId", compoundId);
+                    insertCmd.Parameters.AddWithValue("@level", formattedLevel);
+
+                    insertCmd.ExecuteNonQuery();
+                    insertedCount++;
+                }
+
+                MessageBox.Show($"Inserted {insertedCount} new TireCompound record(s) for VehicleID: {VehicleID}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message);
+            }
+        }
+
+
+
+
+
     }
+
+
 }
+
+
+
+
+
+    

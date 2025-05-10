@@ -39,16 +39,21 @@
             radioButton2 = new RadioButton();
             radioButton1 = new RadioButton();
             textBox1 = new TextBox();
+            button5 = new Button();
             tabPage2 = new TabPage();
             EngineSwapTabTable = new TableLayoutPanel();
             CarEngineListBox = new ListBox();
             TopLeftEngineSwapTable = new TableLayoutPanel();
             EngineSelectTable = new TableLayoutPanel();
             tabPage3 = new TabPage();
-            radioButton5 = new RadioButton();
-            radioButton4 = new RadioButton();
-            radioButton3 = new RadioButton();
+            panel2 = new Panel();
             comboBox4 = new ComboBox();
+            radioButton3 = new RadioButton();
+            button4 = new Button();
+            radioButton4 = new RadioButton();
+            radioButton5 = new RadioButton();
+            panel1 = new Panel();
+            comboBox1 = new ComboBox();
             CarSelectorLabel = new Label();
             button3 = new Button();
             BackTable = new TableLayoutPanel();
@@ -62,6 +67,8 @@
             TopLeftEngineSwapTable.SuspendLayout();
             EngineSelectTable.SuspendLayout();
             tabPage3.SuspendLayout();
+            panel2.SuspendLayout();
+            panel1.SuspendLayout();
             BackTable.SuspendLayout();
             LeftBarTable.SuspendLayout();
             CarSelectorTable.SuspendLayout();
@@ -76,7 +83,6 @@
             CarSelectorComboBox.Size = new Size(120, 23);
             CarSelectorComboBox.TabIndex = 0;
             CarSelectorComboBox.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
-
             // 
             // dgvSwaps
             // 
@@ -104,7 +110,6 @@
             button1.Location = new Point(3, 3);
             button1.Name = "button1";
             button1.Size = new Size(163, 69);
-
             button1.TabIndex = 2;
             button1.Text = "DB Location";
             button1.UseVisualStyleBackColor = true;
@@ -148,6 +153,7 @@
             tabPage1.Controls.Add(radioButton2);
             tabPage1.Controls.Add(radioButton1);
             tabPage1.Controls.Add(textBox1);
+            tabPage1.Controls.Add(button5);
             tabPage1.Location = new Point(4, 24);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
@@ -181,11 +187,21 @@
             // 
             // textBox1
             // 
-            textBox1.Location = new Point(135, 63);
+            textBox1.Location = new Point(16, 63);
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(100, 23);
             textBox1.TabIndex = 0;
             textBox1.TextChanged += textBox1_TextChanged;
+            // 
+            // button5
+            // 
+            button5.Location = new Point(138, 6);
+            button5.Name = "button5";
+            button5.Size = new Size(160, 80);
+            button5.TabIndex = 4;
+            button5.Text = "Add all tyre compounds";
+            button5.UseVisualStyleBackColor = true;
+            button5.Click += button5_Click;
             // 
             // tabPage2
             // 
@@ -257,10 +273,8 @@
             // 
             // tabPage3
             // 
-            tabPage3.Controls.Add(radioButton5);
-            tabPage3.Controls.Add(radioButton4);
-            tabPage3.Controls.Add(radioButton3);
-            tabPage3.Controls.Add(comboBox4);
+            tabPage3.Controls.Add(panel2);
+            tabPage3.Controls.Add(panel1);
             tabPage3.Location = new Point(4, 24);
             tabPage3.Margin = new Padding(3, 2, 3, 2);
             tabPage3.Name = "tabPage3";
@@ -270,49 +284,93 @@
             tabPage3.Text = "DriveTrain Edit";
             tabPage3.UseVisualStyleBackColor = true;
             // 
-            // radioButton5
+            // panel2
             // 
-            radioButton5.AutoSize = true;
-            radioButton5.Location = new Point(21, 99);
-            radioButton5.Name = "radioButton5";
-            radioButton5.Size = new Size(50, 19);
-            radioButton5.TabIndex = 2;
-            radioButton5.TabStop = true;
-            radioButton5.Text = "FWD";
-            radioButton5.UseVisualStyleBackColor = true;
+            panel2.Controls.Add(comboBox4);
+            panel2.Controls.Add(radioButton3);
+            panel2.Controls.Add(button4);
+            panel2.Controls.Add(radioButton4);
+            panel2.Controls.Add(radioButton5);
+            panel2.Location = new Point(6, 0);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(177, 155);
+            panel2.TabIndex = 5;
             // 
-            // radioButton4
+            // comboBox4
             // 
-            radioButton4.AutoSize = true;
-            radioButton4.Location = new Point(21, 74);
-            radioButton4.Name = "radioButton4";
-            radioButton4.Size = new Size(51, 19);
-            radioButton4.TabIndex = 2;
-            radioButton4.TabStop = true;
-            radioButton4.Text = "AWD";
-            radioButton4.UseVisualStyleBackColor = true;
+            comboBox4.FormattingEnabled = true;
+            comboBox4.Items.AddRange(new object[] { "FWD", "RWD", "AWD" });
+            comboBox4.Location = new Point(14, 12);
+            comboBox4.Margin = new Padding(3, 2, 3, 2);
+            comboBox4.Name = "comboBox4";
+            comboBox4.Size = new Size(133, 23);
+            comboBox4.TabIndex = 0;
+            comboBox4.SelectedIndexChanged += comboBox4_SelectedIndexChanged;
             // 
             // radioButton3
             // 
             radioButton3.AutoSize = true;
-            radioButton3.Location = new Point(21, 49);
+            radioButton3.Location = new Point(14, 39);
             radioButton3.Name = "radioButton3";
             radioButton3.Size = new Size(51, 19);
             radioButton3.TabIndex = 2;
             radioButton3.TabStop = true;
             radioButton3.Text = "RWD";
             radioButton3.UseVisualStyleBackColor = true;
+            radioButton3.CheckedChanged += radioButton3_CheckedChanged;
             // 
-            // comboBox4
+            // button4
             // 
-            comboBox4.FormattingEnabled = true;
-            comboBox4.Items.AddRange(new object[] { "FWD", "RWD", "AWD" });
-            comboBox4.Location = new Point(21, 22);
-            comboBox4.Margin = new Padding(3, 2, 3, 2);
-            comboBox4.Name = "comboBox4";
-            comboBox4.Size = new Size(133, 23);
-            comboBox4.TabIndex = 0;
-            comboBox4.SelectedIndexChanged += comboBox4_SelectedIndexChanged;
+            button4.Location = new Point(14, 114);
+            button4.Name = "button4";
+            button4.Size = new Size(133, 23);
+            button4.TabIndex = 3;
+            button4.Text = "Add/Modify";
+            button4.UseVisualStyleBackColor = true;
+            button4.Click += button4_Click;
+            // 
+            // radioButton4
+            // 
+            radioButton4.AutoSize = true;
+            radioButton4.Location = new Point(14, 64);
+            radioButton4.Name = "radioButton4";
+            radioButton4.Size = new Size(51, 19);
+            radioButton4.TabIndex = 2;
+            radioButton4.TabStop = true;
+            radioButton4.Text = "AWD";
+            radioButton4.UseVisualStyleBackColor = true;
+            radioButton4.CheckedChanged += radioButton4_CheckedChanged;
+            // 
+            // radioButton5
+            // 
+            radioButton5.AutoSize = true;
+            radioButton5.Location = new Point(14, 89);
+            radioButton5.Name = "radioButton5";
+            radioButton5.Size = new Size(50, 19);
+            radioButton5.TabIndex = 2;
+            radioButton5.TabStop = true;
+            radioButton5.Text = "FWD";
+            radioButton5.UseVisualStyleBackColor = true;
+            radioButton5.CheckedChanged += radioButton5_CheckedChanged;
+            // 
+            // panel1
+            // 
+            panel1.Controls.Add(comboBox1);
+            panel1.Location = new Point(183, 3);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(656, 625);
+            panel1.TabIndex = 4;
+            // 
+            // comboBox1
+            // 
+            comboBox1.FormattingEnabled = true;
+            comboBox1.Items.AddRange(new object[] { "FWD", "RWD", "AWD" });
+            comboBox1.Location = new Point(6, 9);
+            comboBox1.Margin = new Padding(3, 2, 3, 2);
+            comboBox1.Name = "comboBox1";
+            comboBox1.Size = new Size(133, 23);
+            comboBox1.TabIndex = 0;
+            comboBox1.SelectedIndexChanged += comboBox4_SelectedIndexChanged;
             // 
             // CarSelectorLabel
             // 
@@ -324,7 +382,6 @@
             CarSelectorLabel.TabIndex = 3;
             CarSelectorLabel.Text = "Car";
             CarSelectorLabel.Click += label4_Click;
-
             // 
             // button3
             // 
@@ -332,7 +389,6 @@
             button3.Location = new Point(3, 78);
             button3.Name = "button3";
             button3.Size = new Size(163, 69);
-
             button3.TabIndex = 2;
             button3.Text = "Engine Name Spreadsheet";
             button3.UseVisualStyleBackColor = true;
@@ -392,7 +448,6 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1033, 669);
             Controls.Add(BackTable);
-
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
@@ -406,7 +461,9 @@
             EngineSelectTable.ResumeLayout(false);
             EngineSelectTable.PerformLayout();
             tabPage3.ResumeLayout(false);
-            tabPage3.PerformLayout();
+            panel2.ResumeLayout(false);
+            panel2.PerformLayout();
+            panel1.ResumeLayout(false);
             BackTable.ResumeLayout(false);
             LeftBarTable.ResumeLayout(false);
             CarSelectorTable.ResumeLayout(false);
@@ -442,5 +499,10 @@
         private TableLayoutPanel EngineSwapTabTable;
         private TableLayoutPanel TopLeftEngineSwapTable;
         private TableLayoutPanel EngineSelectTable;
+        private Button button4;
+        private Panel panel2;
+        private ComboBox comboBox1;
+        private Panel panel1;
+        private Button button5;
     }
 }
