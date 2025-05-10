@@ -19,7 +19,11 @@ namespace ForzaSwapper
         {
             InitializeComponent();
         }
-
+        //Hey B if your reading this your trying to figure out how to add a new element to any of the side bars
+        //Simply add a new TableLayoutPanel in the bottom area of the left side bar
+        //From there simply set it's docking to fill and then remove a column and add as many rows as you need
+        //Think of the tableLayoutPanel as a box and you put more boxes in for each item you have!
+        //If you need anything please message me and i'll do my best to explain
         private void Form1_Load(object sender, EventArgs e) { }
 
         private void button1_Click(object sender, EventArgs e)
@@ -323,7 +327,7 @@ VALUES
 
         private void UpdateCurrentEngineList()
         {
-            listBox1.Items.Clear();
+            CarEngineListBox.Items.Clear();
 
             // Query to get all EngineIDs under the selected Ordinal
             string query = @"
@@ -362,7 +366,7 @@ VALUES
                                         string engineName = carReader["EngineName"].ToString();
 
                                         // Format as carname(engineName) and add to listBox
-                                        listBox1.Items.Add($"{carName}({engineName})");
+                                        CarEngineListBox.Items.Add($"{carName}({engineName})");
                                     }
                                 }
                             }
