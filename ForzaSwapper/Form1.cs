@@ -921,6 +921,297 @@ namespace ForzaSwapper
             }
         }
 
+        private void buttonDuplicateEngine_Click(object sender, EventArgs e)
+        {
+            if (comboBoxEngineManager.SelectedItem == null)
+            {
+                MessageBox.Show("Please select an engine first.");
+                return;
+            }
+
+            int originalEngineId = Convert.ToInt32(comboBoxEngineManager.SelectedValue);
+
+            using (var conn = new SQLiteConnection($"Data Source={PathDB};"))
+
+            {
+                conn.Open();
+
+                // Step 1: Get the engine row
+                SQLiteCommand getEngineCmd = new SQLiteCommand("SELECT * FROM Data_Engine WHERE EngineID = @EngineID", conn);
+                getEngineCmd.Parameters.AddWithValue("@EngineID", originalEngineId);
+                var reader = getEngineCmd.ExecuteReader();
+
+                if (!reader.Read())
+                {
+                    MessageBox.Show("Engine not found.");
+                    return;
+                }
+
+                // Step 2: Prompt for MediaName
+                string newMediaName = Microsoft.VisualBasic.Interaction.InputBox("Enter a new MediaName for the duplicated engine:", "New MediaName", reader["MediaName"].ToString());
+                if (string.IsNullOrWhiteSpace(newMediaName))
+                {
+                    MessageBox.Show("MediaName is required.");
+                    return;
+                }
+
+                // Step 3: Get next available EngineID
+                int newEngineId = 100000;
+                using (var getMaxCmd = new SQLiteCommand("SELECT MAX(EngineID) FROM Data_Engine", conn))
+                {
+                    var result = getMaxCmd.ExecuteScalar();
+                    if (result != DBNull.Value)
+                        newEngineId = Convert.ToInt32(result) + 1;
+                }
+
+                // Step 4: Insert new engine
+                var destColumns = new HashSet<string>();
+                using (var pragmaCmd = new SQLiteCommand("PRAGMA table_info(Data_Engine)", conn))
+                using (var pragmaReader = pragmaCmd.ExecuteReader())
+                {
+                    while (pragmaReader.Read())
+                        destColumns.Add(pragmaReader["name"].ToString());
+                }
+
+                var insertCols = new List<string>();
+                var insertVals = new List<string>();
+                var insertCmd = new SQLiteCommand(conn);
+
+                for (int i = 0; i < reader.FieldCount; i++)
+                {
+                    string col = reader.GetName(i);
+                    if (!destColumns.Contains(col)) continue;
+
+                    object val = reader[col];
+                    if (col == "EngineID")
+                        val = newEngineId;
+                    if (col == "MediaName")
+                        val = newMediaName;
+
+                    string safeParam = col.Replace("-", "_");
+                    insertCols.Add($"[{col}]");
+                    insertVals.Add($"@{safeParam}");
+                    insertCmd.Parameters.AddWithValue($"@{safeParam}", val ?? DBNull.Value);
+                }
+
+                insertCmd.CommandText = $"INSERT INTO Data_Engine ({string.Join(",", insertCols)}) VALUES ({string.Join(",", insertVals)})";
+                insertCmd.ExecuteNonQuery();
+
+                // Step 5: Copy TorqueCurves
+                long newBaseTorqueId = newEngineId * 1000;
+                long oldBaseTorqueId = originalEngineId * 1000;
+
+                SQLiteCommand torqueSelect = new SQLiteCommand("SELECT * FROM List_TorqueCurve WHERE TorqueCurveID BETWEEN @Start AND @End", conn);
+                torqueSelect.Parameters.AddWithValue("@Start", oldBaseTorqueId);
+                torqueSelect.Parameters.AddWithValue("@End", oldBaseTorqueId + 999);
+                using (var torqueReader = torqueSelect.ExecuteReader())
+                {
+                    var torqueCols = new HashSet<string>();
+                    using (var pragma = new SQLiteCommand("PRAGMA table_info(List_TorqueCurve)", conn))
+                    using (var pReader = pragma.ExecuteReader())
+                        while (pReader.Read())
+                            torqueCols.Add(pReader["name"].ToString());
+
+                    while (torqueReader.Read())
+                    {
+                        long oldId = (long)torqueReader["TorqueCurveID"];
+                        long newId = oldId - oldBaseTorqueId + newBaseTorqueId;
+
+                        var colNames = new List<string>();
+                        var valNames = new List<string>();
+                        var insertTorque = new SQLiteCommand(conn);
+
+                        for (int i = 0; i < torqueReader.FieldCount; i++)
+                        {
+                            string col = torqueReader.GetName(i);
+                            if (!torqueCols.Contains(col)) continue;
+
+                            object val = torqueReader[col];
+                            if (col == "TorqueCurveID")
+                                val = newId;
+
+                            string safeParam = col.Replace("-", "_");
+                            colNames.Add($"[{col}]");
+                            valNames.Add($"@{safeParam}");
+                            insertTorque.Parameters.AddWithValue($"@{safeParam}", val ?? DBNull.Value);
+                        }
+
+                        insertTorque.CommandText = $"INSERT INTO List_TorqueCurve ({string.Join(",", colNames)}) VALUES ({string.Join(",", valNames)})";
+                        insertTorque.ExecuteNonQuery();
+                    }
+                }
+
+                // Step 6: Copy upgrades from all relevant tables
+                string[] upgradeTables = new[] {
+                                "List_UpgradeEngineCSC",
+                                "List_UpgradeEngineCamshaft",
+                                "List_UpgradeEngineDSC",
+                                "List_UpgradeEngineDisplacement",
+                                "List_UpgradeEngineExhaust",
+                                "List_UpgradeEngineFlywheel",
+                                "List_UpgradeEngineFuelSystem",
+                                "List_UpgradeEngineIgnition",
+                                "List_UpgradeEngineIntake",
+                                "List_UpgradeEngineIntercooler",
+                                "List_UpgradeEngineManifold",
+                                "List_UpgradeEngineOilCooling",
+                                "List_UpgradeEnginePistonsCompression",
+                                "List_UpgradeEngineRestrictorPlate",
+                                "List_UpgradeEngineTurboQuad",
+                                "List_UpgradeEngineTurboSingle",
+                                "List_UpgradeEngineTurboTwin",
+                                "List_UpgradeEngineValves"
+        };
+
+                long newBaseUpgradeId = newEngineId * 1000;
+                long oldBaseUpgradeId = originalEngineId * 1000;
+
+                foreach (var table in upgradeTables)
+                {
+                    var destCols = new HashSet<string>();
+                    using (var pragma = new SQLiteCommand($"PRAGMA table_info({table})", conn))
+                    using (var pReader = pragma.ExecuteReader())
+                        while (pReader.Read())
+                            destCols.Add(pReader["name"].ToString());
+
+                    var selectUpgrades = new SQLiteCommand($"SELECT * FROM {table} WHERE EngineID = @OldID", conn);
+                    selectUpgrades.Parameters.AddWithValue("@OldID", originalEngineId);
+
+                    using (var upgradeReader = selectUpgrades.ExecuteReader())
+                    {
+                        while (upgradeReader.Read())
+                        {
+                            var insertColsU = new List<string>();
+                            var insertValsU = new List<string>();
+                            var insertUpgrade = new SQLiteCommand(conn);
+
+                            long oldId = Convert.ToInt64(upgradeReader["Id"]);
+                            long newId = oldId - oldBaseUpgradeId + newBaseUpgradeId;
+
+                            for (int i = 0; i < upgradeReader.FieldCount; i++)
+                            {
+                                string col = upgradeReader.GetName(i);
+                                if (!destCols.Contains(col)) continue;
+
+                                object val = upgradeReader[col];
+                                if (col == "Id")
+                                    val = newId;
+                                else if (col == "EngineID")
+                                    val = newEngineId;
+
+                                insertColsU.Add($"[{col}]");
+                                insertValsU.Add($"@{col}");
+                                insertUpgrade.Parameters.AddWithValue($"@{col}", val ?? DBNull.Value);
+                            }
+
+                            insertUpgrade.CommandText = $"INSERT INTO {table} ({string.Join(",", insertColsU)}) VALUES ({string.Join(",", insertValsU)})";
+                            insertUpgrade.ExecuteNonQuery();
+                        }
+                    }
+                }
+
+
+                MessageBox.Show($"Engine duplicated with ID {newEngineId} and MediaName '{newMediaName}'.");
+            }
+        }
+
+        private void buttonDeleteEngine_Click(object sender, EventArgs e)
+        {
+            if (comboBoxEngineManager.SelectedItem == null)
+            {
+                MessageBox.Show("Please select an engine to delete.");
+                return;
+            }
+
+            int engineId = Convert.ToInt32(comboBoxEngineManager.SelectedValue);
+
+            var confirmResult = MessageBox.Show(
+                $"Are you sure you want to delete engine ID {engineId} and all related data?",
+                "Confirm Delete",
+                MessageBoxButtons.YesNo);
+
+            if (confirmResult != DialogResult.Yes)
+                return;
+
+            try
+            {
+                using (var conn = new SQLiteConnection($"Data Source={PathDB};"))
+                {
+                    conn.Open();
+
+                    using (var trans = conn.BeginTransaction())
+                    {
+                        // Delete dependent upgrades
+                        string[] upgradeTables = new[] {
+    "List_UpgradeEngineCSC",
+    "List_UpgradeEngineCamshaft",
+    "List_UpgradeEngineDSC",
+    "List_UpgradeEngineDisplacement",
+    "List_UpgradeEngineExhaust",
+    "List_UpgradeEngineFlywheel",
+    "List_UpgradeEngineFuelSystem",
+    "List_UpgradeEngineIgnition",
+    "List_UpgradeEngineIntake",
+    "List_UpgradeEngineIntercooler",
+    "List_UpgradeEngineManifold",
+    "List_UpgradeEngineOilCooling",
+    "List_UpgradeEnginePistonsCompression",
+    "List_UpgradeEngineRestrictorPlate",
+    "List_UpgradeEngineTurboQuad",
+    "List_UpgradeEngineTurboSingle",
+    "List_UpgradeEngineTurboTwin",
+    "List_UpgradeEngineValves"
+};
+
+                        foreach (var table in upgradeTables)
+                        {
+                            using (var cmd = new SQLiteCommand($"DELETE FROM {table} WHERE EngineID = @EngineID", conn, trans))
+                            {
+                                cmd.Parameters.AddWithValue("@EngineID", engineId);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+
+                        // Delete torque curves
+                        long torqueStart = engineId * 1000;
+                        long torqueEnd = torqueStart + 999;
+                        using (var cmdTorque = new SQLiteCommand("DELETE FROM List_TorqueCurve WHERE TorqueCurveID BETWEEN @Start AND @End", conn, trans))
+                        {
+                            cmdTorque.Parameters.AddWithValue("@Start", torqueStart);
+                            cmdTorque.Parameters.AddWithValue("@End", torqueEnd);
+                            cmdTorque.ExecuteNonQuery();
+                        }
+
+                        // Delete engine
+                        using (var cmdEngine = new SQLiteCommand("DELETE FROM Data_Engine WHERE EngineID = @EngineID", conn, trans))
+                        {
+                            cmdEngine.Parameters.AddWithValue("@EngineID", engineId);
+                            int rowsAffected = cmdEngine.ExecuteNonQuery();
+                            if (rowsAffected == 0)
+                            {
+                                MessageBox.Show("Engine not found or already deleted.");
+                                trans.Rollback();
+                                return;
+                            }
+                        }
+
+                        trans.Commit();
+                    }
+                }
+
+                MessageBox.Show($"Engine ID {engineId} and related data deleted.");
+                // Optionally refresh UI here after deletion
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error deleting engine: " + ex.Message);
+            }
+        }
+
+
+
+
+
 
 
 

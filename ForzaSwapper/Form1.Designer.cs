@@ -55,6 +55,8 @@
             panel1 = new Panel();
             comboBox1 = new ComboBox();
             EngineManager = new TabPage();
+            button7 = new Button();
+            buttonDuplicateEngine = new Button();
             button6 = new Button();
             label2 = new Label();
             comboBoxEngineManager = new ComboBox();
@@ -380,6 +382,8 @@
             // 
             // EngineManager
             // 
+            EngineManager.Controls.Add(button7);
+            EngineManager.Controls.Add(buttonDuplicateEngine);
             EngineManager.Controls.Add(button6);
             EngineManager.Controls.Add(label2);
             EngineManager.Controls.Add(comboBoxEngineManager);
@@ -390,6 +394,26 @@
             EngineManager.TabIndex = 3;
             EngineManager.Text = "Engine Manager";
             EngineManager.UseVisualStyleBackColor = true;
+            // 
+            // button7
+            // 
+            button7.Location = new Point(260, 54);
+            button7.Name = "button7";
+            button7.Size = new Size(121, 40);
+            button7.TabIndex = 2;
+            button7.Text = "Delete Engine";
+            button7.UseVisualStyleBackColor = true;
+            button7.Click += buttonDeleteEngine_Click;
+            // 
+            // buttonDuplicateEngine
+            // 
+            buttonDuplicateEngine.Location = new Point(133, 54);
+            buttonDuplicateEngine.Name = "buttonDuplicateEngine";
+            buttonDuplicateEngine.Size = new Size(121, 40);
+            buttonDuplicateEngine.TabIndex = 2;
+            buttonDuplicateEngine.Text = "Duplicate Engine";
+            buttonDuplicateEngine.UseVisualStyleBackColor = true;
+            buttonDuplicateEngine.Click += buttonDuplicateEngine_Click;
             // 
             // button6
             // 
@@ -557,5 +581,7 @@
         private ComboBox comboBoxEngineManager;
         private Label label2;
         private Button button6;
+        private Button buttonDuplicateEngine;
+        private Button button7;
     }
 }
