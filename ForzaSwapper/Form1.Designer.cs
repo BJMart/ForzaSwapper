@@ -54,6 +54,10 @@
             radioButton5 = new RadioButton();
             panel1 = new Panel();
             comboBox1 = new ComboBox();
+            EngineManager = new TabPage();
+            button6 = new Button();
+            label2 = new Label();
+            comboBoxEngineManager = new ComboBox();
             CarSelectorLabel = new Label();
             button3 = new Button();
             BackTable = new TableLayoutPanel();
@@ -69,6 +73,7 @@
             tabPage3.SuspendLayout();
             panel2.SuspendLayout();
             panel1.SuspendLayout();
+            EngineManager.SuspendLayout();
             BackTable.SuspendLayout();
             LeftBarTable.SuspendLayout();
             CarSelectorTable.SuspendLayout();
@@ -141,6 +146,7 @@
             tabControl1.Controls.Add(tabPage1);
             tabControl1.Controls.Add(tabPage2);
             tabControl1.Controls.Add(tabPage3);
+            tabControl1.Controls.Add(EngineManager);
             tabControl1.Dock = DockStyle.Fill;
             tabControl1.Location = new Point(178, 3);
             tabControl1.Name = "tabControl1";
@@ -372,6 +378,47 @@
             comboBox1.TabIndex = 0;
             comboBox1.SelectedIndexChanged += comboBox4_SelectedIndexChanged;
             // 
+            // EngineManager
+            // 
+            EngineManager.Controls.Add(button6);
+            EngineManager.Controls.Add(label2);
+            EngineManager.Controls.Add(comboBoxEngineManager);
+            EngineManager.Location = new Point(4, 24);
+            EngineManager.Name = "EngineManager";
+            EngineManager.Padding = new Padding(3);
+            EngineManager.Size = new Size(869, 635);
+            EngineManager.TabIndex = 3;
+            EngineManager.Text = "Engine Manager";
+            EngineManager.UseVisualStyleBackColor = true;
+            // 
+            // button6
+            // 
+            button6.Location = new Point(6, 54);
+            button6.Name = "button6";
+            button6.Size = new Size(121, 40);
+            button6.TabIndex = 2;
+            button6.Text = "Export engine to other forza";
+            button6.UseVisualStyleBackColor = true;
+            button6.Click += button6_Click;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(133, 25);
+            label2.Name = "label2";
+            label2.Size = new Size(48, 15);
+            label2.TabIndex = 1;
+            label2.Text = "Engines";
+            // 
+            // comboBoxEngineManager
+            // 
+            comboBoxEngineManager.FormattingEnabled = true;
+            comboBoxEngineManager.Location = new Point(6, 25);
+            comboBoxEngineManager.Name = "comboBoxEngineManager";
+            comboBoxEngineManager.Size = new Size(121, 23);
+            comboBoxEngineManager.TabIndex = 0;
+            comboBoxEngineManager.SelectedIndexChanged += comboBoxEngineManager_SelectedIndexChanged;
+            // 
             // CarSelectorLabel
             // 
             CarSelectorLabel.AutoSize = true;
@@ -464,6 +511,8 @@
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
             panel1.ResumeLayout(false);
+            EngineManager.ResumeLayout(false);
+            EngineManager.PerformLayout();
             BackTable.ResumeLayout(false);
             LeftBarTable.ResumeLayout(false);
             CarSelectorTable.ResumeLayout(false);
@@ -504,5 +553,9 @@
         private ComboBox comboBox1;
         private Panel panel1;
         private Button button5;
+        private TabPage EngineManager;
+        private ComboBox comboBoxEngineManager;
+        private Label label2;
+        private Button button6;
     }
 }

@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SQLite;
 using System.Windows.Forms;
 using ForzaSwapper.src;
+using Microsoft.Data.Sqlite;
 
 
 namespace ForzaSwapper
@@ -15,6 +16,7 @@ namespace ForzaSwapper
         private string VehicleID;
         private string PathDB;
         private string PathCSV;
+        private string PathExportDB;
         private int SelectedDriveType;
         public Form1()
         {
@@ -39,6 +41,8 @@ namespace ForzaSwapper
                     PathDB = ofd.FileName;
                     PopulateComboBox(new ComboBox[] { CarSelectorComboBox }, "Data_Car", "MediaName");
                     PopulateComboBox(new ComboBox[] { comboBox2 }, "Data_Engine", "MediaName");
+                    PopulateComboBox(new ComboBox[] { comboBoxEngineManager }, "Data_Engine", "MediaName");
+
                 }
             }
         }
@@ -189,64 +193,64 @@ namespace ForzaSwapper
             }
         }
 
-            private void button2_Click(object sender, EventArgs e)
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(selectedEngineID) || string.IsNullOrEmpty(VehicleID))
             {
-                if (string.IsNullOrEmpty(selectedEngineID) || string.IsNullOrEmpty(VehicleID))
+                MessageBox.Show($"Please select both a car and an engine.\nVehicleID: {VehicleID}\nEngineID: {selectedEngineID}");
+                return;
+            }
+
+            try
+            {
+                using var connection = new SQLiteConnection($@"Data Source={PathDB};Version=3;");
+                connection.Open();
+
+                // Get previous row
+                string getLastRowQuery = "SELECT Level, ManufacturerID FROM List_UpgradeEngine WHERE Ordinal = @vehicleID ORDER BY rowid DESC LIMIT 1";
+                var getLastCmd = new SQLiteCommand(getLastRowQuery, connection);
+                getLastCmd.Parameters.AddWithValue("@vehicleID", VehicleID);
+                object levelResult = null, manufacturerResult = null;
+
+                using (var reader = getLastCmd.ExecuteReader())
                 {
-                    MessageBox.Show($"Please select both a car and an engine.\nVehicleID: {VehicleID}\nEngineID: {selectedEngineID}");
-                    return;
+                    if (reader.Read())
+                    {
+                        levelResult = reader["Level"];
+                        manufacturerResult = reader["ManufacturerID"];
+                    }
                 }
 
-                try
-                {
-                    using var connection = new SQLiteConnection($@"Data Source={PathDB};Version=3;");
-                    connection.Open();
+                int nextLevel = (levelResult != null && int.TryParse(levelResult.ToString(), out int lastLevel)) ? lastLevel + 1 : 1;
+                string formattedLevel = nextLevel.ToString("D3");
+                string generatedId = VehicleID + formattedLevel;
+                string manufacturerID = manufacturerResult?.ToString() ?? "";
 
-                    // Get previous row
-                    string getLastRowQuery = "SELECT Level, ManufacturerID FROM List_UpgradeEngine WHERE Ordinal = @vehicleID ORDER BY rowid DESC LIMIT 1";
-                    var getLastCmd = new SQLiteCommand(getLastRowQuery, connection);
-                    getLastCmd.Parameters.AddWithValue("@vehicleID", VehicleID);
-                    object levelResult = null, manufacturerResult = null;
+                // Get mass info
+                double selectedMass = GetEngineMass(connection, selectedEngineID);
+                string stockEngineID = GetStockEngineID(connection, VehicleID);
+                double stockMass = GetEngineMass(connection, stockEngineID);
+                double massDiff = selectedMass - stockMass;
 
-                    using (var reader = getLastCmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            levelResult = reader["Level"];
-                            manufacturerResult = reader["ManufacturerID"];
-                        }
-                    }
+                // WeightDistDiff calculation
+                double weightDistDiff = CalculateWeightDistDiff(connection, VehicleID, massDiff);
 
-                    int nextLevel = (levelResult != null && int.TryParse(levelResult.ToString(), out int lastLevel)) ? lastLevel + 1 : 1;
-                    string formattedLevel = nextLevel.ToString("D3");
-                    string generatedId = VehicleID + formattedLevel;
-                    string manufacturerID = manufacturerResult?.ToString() ?? "";
+                // Price = 20% of base cost
+                double price = GetEngineSwapPrice(connection, selectedEngineID);
 
-                    // Get mass info
-                    double selectedMass = GetEngineMass(connection, selectedEngineID);
-                    string stockEngineID = GetStockEngineID(connection, VehicleID);
-                    double stockMass = GetEngineMass(connection, stockEngineID);
-                    double massDiff = selectedMass - stockMass;
-
-                    // WeightDistDiff calculation
-                    double weightDistDiff = CalculateWeightDistDiff(connection, VehicleID, massDiff);
-
-                    // Price = 20% of base cost
-                    double price = GetEngineSwapPrice(connection, selectedEngineID);
-
-                    // Insert record
-                    string insertQuery = @"
+                // Insert record
+                string insertQuery = @"
     INSERT INTO List_UpgradeEngine 
     (Id, Ordinal, EngineID, Level, IsStock, ManufacturerID, Price, MassDiff, WeightDistDiff, DragScale, WindInstabilityScale) 
     VALUES 
     (@id, @vehicleID, @engineId, @level, 0, @manufacturerID, @price, @massDiff, @weightDistDiff, 1, 1)";
 
-                    using var insertCmd = new SQLiteCommand(insertQuery, connection);
-                    insertCmd.Parameters.AddWithValue("@id", generatedId);
-                    insertCmd.Parameters.AddWithValue("@vehicleID", VehicleID);
-                    insertCmd.Parameters.AddWithValue("@engineId", selectedEngineID);
-                    insertCmd.Parameters.AddWithValue("@level", formattedLevel);
-                    insertCmd.Parameters.AddWithValue("@manufacturerID", manufacturerID);
+                using var insertCmd = new SQLiteCommand(insertQuery, connection);
+                insertCmd.Parameters.AddWithValue("@id", generatedId);
+                insertCmd.Parameters.AddWithValue("@vehicleID", VehicleID);
+                insertCmd.Parameters.AddWithValue("@engineId", selectedEngineID);
+                insertCmd.Parameters.AddWithValue("@level", formattedLevel);
+                insertCmd.Parameters.AddWithValue("@manufacturerID", manufacturerID);
                 insertCmd.Parameters.AddWithValue("@price", price);
                 insertCmd.Parameters.AddWithValue("@massDiff", massDiff);
                 insertCmd.Parameters.AddWithValue("@weightDistDiff", weightDistDiff);
@@ -632,6 +636,288 @@ namespace ForzaSwapper
             catch (Exception ex)
             {
                 MessageBox.Show("Error: " + ex.Message);
+            }
+        }
+
+        private void comboBoxEngineManager_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Title = "Select a Filer";
+                ofd.Filter = "SLT Files (*.slt)|*.slt";
+                ofd.DefaultExt = "slt";
+
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    string PathExportDB = ofd.FileName;
+
+                    string selectedMediaName = comboBoxEngineManager.SelectedItem?.ToString();
+                    if (string.IsNullOrEmpty(selectedMediaName))
+                    {
+                        MessageBox.Show("Please select an engine from the dropdown.");
+                        return;
+                    }
+
+                    string sourceDbPath = PathDB;
+
+                    using (var sourceConn = new SQLiteConnection($"Data Source={sourceDbPath};Version=3;"))
+                    using (var destConn = new SQLiteConnection($"Data Source={PathExportDB};Version=3;"))
+                    {
+                        sourceConn.Open();
+                        destConn.Open();
+
+                        string selectQuery = "SELECT * FROM Data_Engine WHERE MediaName = @MediaName";
+                        using (var selectCmd = new SQLiteCommand(selectQuery, sourceConn))
+                        {
+                            selectCmd.Parameters.AddWithValue("@MediaName", selectedMediaName);
+
+                            using (var reader = selectCmd.ExecuteReader())
+                            {
+                                if (reader.Read())
+                                {
+                                    int engineId = Convert.ToInt32(reader["EngineID"]);
+
+                                    string checkQuery = "SELECT COUNT(*) FROM Data_Engine WHERE EngineID = @EngineID";
+                                    using (var checkCmd = new SQLiteCommand(checkQuery, destConn))
+                                    {
+                                        checkCmd.Parameters.AddWithValue("@EngineID", engineId);
+                                        long exists = (long)checkCmd.ExecuteScalar();
+
+                                        if (exists > 0)
+                                        {
+                                            MessageBox.Show("This engine already exists in the selected database.");
+                                            return;
+                                        }
+                                    }
+
+                                    InsertEngineIntoDestination(destConn, reader);
+
+                                    MessageBox.Show("Engine copied successfully.");
+
+                                    // Copy related List_TorqueCurve rows
+                                    long startId = engineId * 1000;
+                                    long endId = startId + 999;
+
+                                    CopyTorqueCurves(sourceConn, destConn, startId, endId);
+
+                                    // Copy all upgrade tables
+                                    string[] upgradeTables = new string[]
+                                    {
+                                "List_UpgradeEngineCSC",
+                                "List_UpgradeEngineCamshaft",
+                                "List_UpgradeEngineDSC",
+                                "List_UpgradeEngineDisplacement",
+                                "List_UpgradeEngineExhaust",
+                                "List_UpgradeEngineFlywheel",
+                                "List_UpgradeEngineFuelSystem",
+                                "List_UpgradeEngineIgnition",
+                                "List_UpgradeEngineIntake",
+                                "List_UpgradeEngineIntercooler",
+                                "List_UpgradeEngineManifold",
+                                "List_UpgradeEngineOilCooling",
+                                "List_UpgradeEnginePistonsCompression",
+                                "List_UpgradeEngineRestrictorPlate",
+                                "List_UpgradeEngineTurboQuad",
+                                "List_UpgradeEngineTurboSingle",
+                                "List_UpgradeEngineTurboTwin",
+                                "List_UpgradeEngineValves"
+                                    };
+
+                                    foreach (var table in upgradeTables)
+                                    {
+                                        CopyUpgradeTable(sourceConn, destConn, table, engineId);
+                                    }
+                                }
+                                else
+                                {
+                                    MessageBox.Show("Engine not found in the source database.");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private HashSet<string> GetTableColumns(SQLiteConnection conn, string tableName)
+        {
+            var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string pragmaQuery = $"PRAGMA table_info([{tableName}])";
+            using (var cmd = new SQLiteCommand(pragmaQuery, conn))
+            {
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string columnName = reader["name"].ToString();
+                        columns.Add(columnName);
+                    }
+                }
+            }
+            return columns;
+        }
+
+        private string SanitizeParamName(string columnName)
+        {
+            // Replace anything that's not a letter, digit or underscore with underscore
+            return "@" + System.Text.RegularExpressions.Regex.Replace(columnName, @"[^a-zA-Z0-9_]", "_");
+        }
+
+        private void InsertEngineIntoDestination(SQLiteConnection destConn, SQLiteDataReader engine)
+        {
+            var destColumns = GetTableColumns(destConn, "Data_Engine");
+
+            var insertColumns = new List<string>();
+            var insertParams = new List<string>();
+            var insertCmd = new SQLiteCommand(destConn);
+
+            // Get available source column names
+            var sourceColumns = new HashSet<string>();
+            for (int i = 0; i < engine.FieldCount; i++)
+            {
+                sourceColumns.Add(engine.GetName(i));
+            }
+
+            foreach (var colName in destColumns)
+            {
+                if (sourceColumns.Contains(colName))
+                {
+                    insertColumns.Add($"[{colName}]");
+
+                    string paramName = SanitizeParamName(colName);
+                    insertParams.Add(paramName);
+
+                    var value = engine.GetValue(engine.GetOrdinal(colName));
+                    insertCmd.Parameters.AddWithValue(paramName, value ?? DBNull.Value);
+                }
+            }
+
+            if (insertColumns.Count == 0)
+            {
+                MessageBox.Show("No matching columns found between source and destination.");
+                return;
+            }
+
+            insertCmd.CommandText = $"INSERT INTO Data_Engine ({string.Join(",", insertColumns)}) VALUES ({string.Join(",", insertParams)});";
+
+            try
+            {
+                insertCmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Insert failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+
+
+        private void CopyTorqueCurves(SQLiteConnection sourceConn, SQLiteConnection destConn, long startId, long endId)
+        {
+            string torqueQuery = "SELECT * FROM List_TorqueCurve WHERE TorqueCurveID BETWEEN @StartID AND @EndID";
+            using (var torqueSelectCmd = new SQLiteCommand(torqueQuery, sourceConn))
+            {
+                torqueSelectCmd.Parameters.AddWithValue("@StartID", startId);
+                torqueSelectCmd.Parameters.AddWithValue("@EndID", endId);
+
+                using (var torqueReader = torqueSelectCmd.ExecuteReader())
+                {
+                    int copied = 0;
+
+                    var destColumns = GetTableColumns(destConn, "List_TorqueCurve");
+
+                    while (torqueReader.Read())
+                    {
+                        long torqueCurveID = (long)torqueReader["TorqueCurveID"];
+
+                        string checkTorqueQuery = "SELECT COUNT(*) FROM List_TorqueCurve WHERE TorqueCurveID = @TorqueCurveID";
+                        using (var checkCmd = new SQLiteCommand(checkTorqueQuery, destConn))
+                        {
+                            checkCmd.Parameters.AddWithValue("@TorqueCurveID", torqueCurveID);
+                            long exists = (long)checkCmd.ExecuteScalar();
+
+                            if (exists > 0)
+                                continue;
+                        }
+
+                        var columnNames = new List<string>();
+                        var parameterNames = new List<string>();
+                        var insertTorqueCmd = new SQLiteCommand(destConn);
+
+                        for (int i = 0; i < torqueReader.FieldCount; i++)
+                        {
+                            string col = torqueReader.GetName(i);
+                            if (!destColumns.Contains(col))
+                                continue;
+
+                            columnNames.Add($"[{col}]");
+                            parameterNames.Add($"@{col}");
+                            insertTorqueCmd.Parameters.AddWithValue($"@{col}", torqueReader[col] ?? DBNull.Value);
+                        }
+
+                        insertTorqueCmd.CommandText = $"INSERT INTO List_TorqueCurve ({string.Join(",", columnNames)}) VALUES ({string.Join(",", parameterNames)})";
+                        insertTorqueCmd.ExecuteNonQuery();
+                        copied++;
+                    }
+
+                    MessageBox.Show($"Copied {copied} torque curve(s) to destination.");
+                }
+            }
+        }
+
+        private void CopyUpgradeTable(SQLiteConnection sourceConn, SQLiteConnection destConn, string tableName, int engineId)
+        {
+            string selectQuery = $"SELECT * FROM {tableName} WHERE EngineID = @EngineID";
+            using (var selectCmd = new SQLiteCommand(selectQuery, sourceConn))
+            {
+                selectCmd.Parameters.AddWithValue("@EngineID", engineId);
+                using (var reader = selectCmd.ExecuteReader())
+                {
+                    var destColumns = GetTableColumns(destConn, tableName);
+                    int copied = 0;
+
+                    while (reader.Read())
+                    {
+                        long id = (long)reader["Id"];
+
+                        string checkQuery = $"SELECT COUNT(*) FROM {tableName} WHERE Id = @Id";
+                        using (var checkCmd = new SQLiteCommand(checkQuery, destConn))
+                        {
+                            checkCmd.Parameters.AddWithValue("@Id", id);
+                            long exists = (long)checkCmd.ExecuteScalar();
+                            if (exists > 0)
+                                continue;
+                        }
+
+                        var insertColumns = new List<string>();
+                        var paramNames = new List<string>();
+                        var insertCmd = new SQLiteCommand(destConn);
+
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            string col = reader.GetName(i);
+                            if (!destColumns.Contains(col))
+                                continue;
+
+                            insertColumns.Add($"[{col}]");
+                            string paramName = $"@{col}";
+                            paramNames.Add(paramName);
+                            insertCmd.Parameters.AddWithValue(paramName, reader[col] ?? DBNull.Value);
+                        }
+
+                        insertCmd.CommandText = $"INSERT INTO {tableName} ({string.Join(",", insertColumns)}) VALUES ({string.Join(",", paramNames)})";
+                        insertCmd.ExecuteNonQuery();
+                        copied++;
+                    }
+
+                    if (copied > 0)
+                        MessageBox.Show($"Copied {copied} rows from {tableName}.");
+                }
             }
         }
 
