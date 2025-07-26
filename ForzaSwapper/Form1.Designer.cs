@@ -55,6 +55,12 @@
             panel1 = new Panel();
             comboBox1 = new ComboBox();
             EngineManager = new TabPage();
+            cmbUpgrade = new ComboBox();
+            panelChart = new Panel();
+            lblMaxPower = new Label();
+            lblStockPower = new Label();
+            lblMax = new Label();
+            lblStock = new Label();
             button7 = new Button();
             buttonDuplicateEngine = new Button();
             button6 = new Button();
@@ -65,6 +71,7 @@
             BackTable = new TableLayoutPanel();
             LeftBarTable = new TableLayoutPanel();
             CarSelectorTable = new TableLayoutPanel();
+            sqliteCommand1 = new Microsoft.Data.Sqlite.SqliteCommand();
             ((System.ComponentModel.ISupportInitialize)dgvSwaps).BeginInit();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
@@ -399,24 +406,83 @@
             // 
             // EngineManager
             // 
+            EngineManager.Controls.Add(cmbUpgrade);
+            EngineManager.Controls.Add(panelChart);
+            EngineManager.Controls.Add(lblMaxPower);
+            EngineManager.Controls.Add(lblStockPower);
+            EngineManager.Controls.Add(lblMax);
+            EngineManager.Controls.Add(lblStock);
             EngineManager.Controls.Add(button7);
             EngineManager.Controls.Add(buttonDuplicateEngine);
             EngineManager.Controls.Add(button6);
             EngineManager.Controls.Add(label2);
             EngineManager.Controls.Add(comboBoxEngineManager);
-            EngineManager.Location = new Point(4, 24);
+            EngineManager.Location = new Point(4, 29);
             EngineManager.Name = "EngineManager";
             EngineManager.Padding = new Padding(3);
-            EngineManager.Size = new Size(869, 635);
+            EngineManager.Size = new Size(994, 851);
             EngineManager.TabIndex = 3;
             EngineManager.Text = "Engine Manager";
             EngineManager.UseVisualStyleBackColor = true;
+            // 
+            // cmbUpgrade
+            // 
+            cmbUpgrade.FormattingEnabled = true;
+            cmbUpgrade.Location = new Point(6, 516);
+            cmbUpgrade.Name = "cmbUpgrade";
+            cmbUpgrade.Size = new Size(151, 28);
+            cmbUpgrade.TabIndex = 5;
+            // 
+            // panelChart
+            // 
+            panelChart.Location = new Point(6, 118);
+            panelChart.Name = "panelChart";
+            panelChart.Size = new Size(956, 392);
+            panelChart.TabIndex = 4;
+            // 
+            // lblMaxPower
+            // 
+            lblMaxPower.AutoSize = true;
+            lblMaxPower.Location = new Point(502, 54);
+            lblMaxPower.Name = "lblMaxPower";
+            lblMaxPower.Size = new Size(81, 20);
+            lblMaxPower.TabIndex = 3;
+            lblMaxPower.Text = "Max Power";
+            // 
+            // lblStockPower
+            // 
+            lblStockPower.AutoSize = true;
+            lblStockPower.Location = new Point(502, 28);
+            lblStockPower.Name = "lblStockPower";
+            lblStockPower.Size = new Size(89, 20);
+            lblStockPower.TabIndex = 3;
+            lblStockPower.Text = "Stock Power";
+            // 
+            // lblMax
+            // 
+            lblMax.AutoSize = true;
+            lblMax.Location = new Point(407, 54);
+            lblMax.Name = "lblMax";
+            lblMax.Size = new Size(81, 20);
+            lblMax.TabIndex = 3;
+            lblMax.Text = "Max Power";
+            lblMax.Click += lblStock_Click;
+            // 
+            // lblStock
+            // 
+            lblStock.AutoSize = true;
+            lblStock.Location = new Point(407, 28);
+            lblStock.Name = "lblStock";
+            lblStock.Size = new Size(89, 20);
+            lblStock.TabIndex = 3;
+            lblStock.Text = "Stock Power";
+            lblStock.Click += lblStock_Click;
             // 
             // button7
             // 
             button7.Location = new Point(260, 54);
             button7.Name = "button7";
-            button7.Size = new Size(121, 40);
+            button7.Size = new Size(121, 58);
             button7.TabIndex = 2;
             button7.Text = "Delete Engine";
             button7.UseVisualStyleBackColor = true;
@@ -426,7 +492,7 @@
             // 
             buttonDuplicateEngine.Location = new Point(133, 54);
             buttonDuplicateEngine.Name = "buttonDuplicateEngine";
-            buttonDuplicateEngine.Size = new Size(121, 40);
+            buttonDuplicateEngine.Size = new Size(121, 58);
             buttonDuplicateEngine.TabIndex = 2;
             buttonDuplicateEngine.Text = "Duplicate Engine";
             buttonDuplicateEngine.UseVisualStyleBackColor = true;
@@ -436,7 +502,7 @@
             // 
             button6.Location = new Point(6, 54);
             button6.Name = "button6";
-            button6.Size = new Size(121, 40);
+            button6.Size = new Size(121, 58);
             button6.TabIndex = 2;
             button6.Text = "Export engine to other forza";
             button6.UseVisualStyleBackColor = true;
@@ -447,7 +513,7 @@
             label2.AutoSize = true;
             label2.Location = new Point(133, 25);
             label2.Name = "label2";
-            label2.Size = new Size(48, 15);
+            label2.Size = new Size(60, 20);
             label2.TabIndex = 1;
             label2.Text = "Engines";
             // 
@@ -456,7 +522,7 @@
             comboBoxEngineManager.FormattingEnabled = true;
             comboBoxEngineManager.Location = new Point(6, 25);
             comboBoxEngineManager.Name = "comboBoxEngineManager";
-            comboBoxEngineManager.Size = new Size(121, 23);
+            comboBoxEngineManager.Size = new Size(121, 28);
             comboBoxEngineManager.TabIndex = 0;
             comboBoxEngineManager.SelectedIndexChanged += comboBoxEngineManager_SelectedIndexChanged;
             // 
@@ -534,6 +600,13 @@
             CarSelectorTable.Size = new Size(188, 45);
             CarSelectorTable.TabIndex = 3;
             // 
+            // sqliteCommand1
+            // 
+            sqliteCommand1.CommandTimeout = 30;
+            sqliteCommand1.Connection = null;
+            sqliteCommand1.Transaction = null;
+            sqliteCommand1.UpdatedRowSource = System.Data.UpdateRowSource.None;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -605,5 +678,12 @@
         private Button button6;
         private Button buttonDuplicateEngine;
         private Button button7;
+        private Label lblStockPower;
+        private Label lblStock;
+        private Microsoft.Data.Sqlite.SqliteCommand sqliteCommand1;
+        private Panel panelChart;
+        private ComboBox cmbUpgrade;
+        private Label lblMaxPower;
+        private Label lblMax;
     }
 }

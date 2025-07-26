@@ -6,6 +6,7 @@ using System.Data.SQLite;
 using System.Windows.Forms;
 using ForzaSwapper.src;
 using Microsoft.Data.Sqlite;
+using System.Windows.Forms.DataVisualization.Charting;
 
 
 namespace ForzaSwapper
@@ -641,7 +642,7 @@ namespace ForzaSwapper
 
         private void comboBoxEngineManager_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            CalculatePowerForSelectedEngine();
         }
 
         private void button6_Click(object sender, EventArgs e)
@@ -1208,14 +1209,492 @@ namespace ForzaSwapper
             }
         }
 
+        private void CalculatePowerForSelectedEngine()
+        {
+            if (comboBoxEngineManager.SelectedItem == null)
+            {
+                MessageBox.Show("Please select an engine.");
+                return;
+            }
+
+            string selectedMediaName = comboBoxEngineManager.Text;
+
+            try
+            {
+                using (var conn = new SQLiteConnection($"Data Source={PathDB};"))
+                {
+                    conn.Open();
+
+                    // Step 1: Lookup EngineID
+                    int? engineId = null;
+                    int EngineID = 0;
+                    using (var cmd = new SQLiteCommand("SELECT EngineID FROM Data_Engine WHERE MediaName = @MediaName", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@MediaName", selectedMediaName);
+                        var result = cmd.ExecuteScalar();
+                        if (result != null && result != DBNull.Value)
+                            engineId = Convert.ToInt32(result);
+                        EngineID = Convert.ToInt32(result);
+                    }
+
+                    if (engineId == null)
+                    {
+                        MessageBox.Show($"EngineID not found for MediaName '{selectedMediaName}'.");
+                        return;
+                    }
+
+                    long baseTorqueCurveId = engineId.Value * 1000;
+                    long highestTorqueCurveId = -1;
+
+                    // Step 2: Find highest TorqueCurveID
+                    using (var cmd = new SQLiteCommand(@"
+                SELECT TorqueCurveID
+                FROM List_TorqueCurve
+                WHERE TorqueCurveID BETWEEN @Start AND @End
+                ORDER BY TorqueCurveID DESC
+                LIMIT 1;", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Start", baseTorqueCurveId);
+                        cmd.Parameters.AddWithValue("@End", baseTorqueCurveId + 999);
+                        var result = cmd.ExecuteScalar();
+                        if (result != null && result != DBNull.Value)
+                            highestTorqueCurveId = Convert.ToInt64(result);
+                    }
+
+                    if (highestTorqueCurveId == -1)
+                    {
+                        MessageBox.Show("No torque curves found for this engine.");
+                        return;
+                    }
+                    double TorqueMultiplier = 1.0;
+                    TorqueMultiplier = GetTorqueScaleFromUpgrades(conn, EngineID);
+                    // Step 3: Calculate stock and max power
+                    var stockPower = CalculatePowerFromTorqueCurve(conn, baseTorqueCurveId);
+                    var maxPower = CalculatePowerFromTorqueCurve(conn, highestTorqueCurveId);
+                    double adjustedMaxPowerKw = maxPower.powerKw * TorqueMultiplier;
+
+                    lblStockPower.Text = $"{stockPower.powerKw:F1} kW @ {stockPower.rpm} RPM\n";
+                    lblMaxPower.Text = $"{adjustedMaxPowerKw:F1} kW @ {maxPower.rpm} RPM";
+
+                        
+
+                    // Step 4: Load and show the stock torque curve chart
+                    double[] torquePercentages = new double[246];
+                    double torqueScale = 0;
+
+                    double[] stockTorquePercentages = new double[246];
+                    double[] maxTorquePercentages = new double[246];
+                    double stockTorqueScale = 0;
+                    double maxTorqueScale = 0;
+
+                    string stockTorqueCurveId = EngineID.ToString("D6") + "000";
+                    string maxTorqueCurveId = EngineID.ToString("D6") + "999";
+
+                    // Load stock values
+                    using (var cmd = new SQLiteCommand("SELECT * FROM List_TorqueCurve WHERE TorqueCurveID = @ID", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ID", stockTorqueCurveId);
+                        using var reader = cmd.ExecuteReader();
+                        if (reader.Read())
+                        {
+                            stockTorqueScale = Convert.ToDouble(reader["TorqueScale"]);
+                            for (int i = 0; i <= 245; i++)
+                            {
+                                string column = "v" + i;
+                                if (reader[column] != DBNull.Value)
+                                    stockTorquePercentages[i] = Convert.ToDouble(reader[column]);
+                            }
+                        }
+                    }
+
+                    // Load max values
+                    using (var cmd = new SQLiteCommand("SELECT * FROM List_TorqueCurve WHERE TorqueCurveID = @ID", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ID", highestTorqueCurveId);
+                        using var reader = cmd.ExecuteReader();
+                        if (reader.Read())
+                        {
+                            maxTorqueScale = Convert.ToDouble(reader["TorqueScale"]) * TorqueMultiplier;
+
+                            for (int i = 0; i <= 245; i++)
+                            {
+                                string column = "v" + i;
+                                if (reader[column] != DBNull.Value)
+                                    maxTorquePercentages[i] = Convert.ToDouble(reader[column]);
+                            }
+                        }
+                    }
+
+                    // ✅ Show the chart with both stock and max curves
+                    ShowTorqueCurveChartInPanel(
+                        panelChart,
+                        selectedMediaName,
+                        maxTorquePercentages,
+                        maxTorqueScale,
+                        stockTorquePercentages,
+                        stockTorqueScale);
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error calculating power: " + ex.Message);
+            }
+        }
+
+        private double GetTorqueScaleFromUpgrades(SQLiteConnection conn, int engineId)
+        {
+            double totalMultiplier = 1.0;
+            string[] upgradeTables = new[]
+            {
+        "List_UpgradeEngineDisplacement",
+        "List_UpgradeEngineExhaust",
+        "List_UpgradeEngineFuelSystem",
+        "List_UpgradeEngineIgnition",
+        "List_UpgradeEngineIntake",
+        "List_UpgradeEngineManifold",
+        "List_UpgradeEngineOilCooling",
+        "List_UpgradeEnginePistonsCompression",
+        "List_UpgradeEngineValves"
+    };
+            string[] upgradeAspirationTables = new[]
+            {
+        "List_UpgradeEngineTurboSingle",
+        "List_UpgradeEngineTurboTwin",
+        "List_UpgradeEngineTurboQuad",
+        "List_UpgradeEngineDSC",
+        "List_UpgradeEngineCSC"
+
+
+            };
+
+            List<double> torqueScales = new List<double>();
+
+            double finalTorque = GetBaseTorqueScaleFromEngineID(conn, engineId); // Start with the base torque
+
+            foreach (var table in upgradeTables)
+            {
+                using var cmd = new SQLiteCommand($@"
+        SELECT TorqueScale 
+        FROM {table} 
+        WHERE EngineID = @EngineID 
+        ORDER BY TorqueScale DESC 
+        LIMIT 1;", conn);
+
+                cmd.Parameters.AddWithValue("@EngineID", engineId);
+
+                var result = cmd.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    double scale = Convert.ToDouble(result);
+                    double scaledIncrease = GetBaseTorqueScaleFromEngineID(conn, engineId) * (scale - 1);
+                    finalTorque += scaledIncrease;
+                }
+            }
+            double highestScale = 1.0; // Default fallback
+
+            bool ColumnExists(SQLiteConnection conn, string tableName, string columnName)
+            {
+                using var cmd = new SQLiteCommand($"PRAGMA table_info({tableName})", conn);
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    if (reader["name"].ToString().Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+                return false;
+            }
+
+            foreach (var table2 in upgradeAspirationTables)
+            {
+                bool hasMax = ColumnExists(conn, table2, "MaxScale");
+                bool hasRedline = ColumnExists(conn, table2, "RedlineRPMScale");
+
+                if (!hasMax && !hasRedline)
+                    continue; // Skip if neither column exists
+
+                string selectedColumnExpr;
+                if (hasMax && hasRedline)
+                {
+                    selectedColumnExpr = @"
+            CASE 
+                WHEN MaxScale IS NOT NULL THEN MaxScale
+                ELSE RedlineRPMScale
+            END AS ScaleValue";
+                }
+                else if (hasMax)
+                {
+                    selectedColumnExpr = "MaxScale AS ScaleValue";
+                }
+                else // hasRedline only
+                {
+                    selectedColumnExpr = "RedlineRPMScale AS ScaleValue";
+                }
+
+                string query = $@"
+        SELECT {selectedColumnExpr}
+        FROM {table2}
+        WHERE EngineID = @EngineID
+        ORDER BY ScaleValue DESC
+        LIMIT 1;";
+
+                using var cmd2 = new SQLiteCommand(query, conn);
+                cmd2.Parameters.AddWithValue("@EngineID", engineId);
+
+                var result = cmd2.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    double scale = Convert.ToDouble(result);
+                    if (scale > highestScale)
+                        highestScale = scale;
+
+                }
+            }
+
+            // Now use `highestScale` instead of `totalMultiplier`
+
+            totalMultiplier = totalMultiplier * highestScale;
+            return totalMultiplier;
+        }
+
+        private double GetBaseTorqueScaleFromEngineID(SQLiteConnection conn, int engineId)
+        {
+            long torqueCurveId = engineId * 1000; // e.g., 123456 becomes 123456000
+
+            using (var cmd = new SQLiteCommand("SELECT TorqueScale FROM List_TorqueCurve WHERE TorqueCurveID = @ID", conn))
+            {
+                cmd.Parameters.AddWithValue("@ID", torqueCurveId);
+
+                var result = cmd.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    return Convert.ToDouble(result);
+                }
+            }
+
+            return 0.0; // or throw an exception if you want to enforce that it must exist
+        }
+
+
+        private (double powerKw, int rpm) CalculatePowerFromTorqueCurve(SQLiteConnection conn, long torqueCurveId)
+        {
+            using (var cmd = new SQLiteCommand("SELECT * FROM List_TorqueCurve WHERE TorqueCurveID = @ID", conn))
+            {
+                cmd.Parameters.AddWithValue("@ID", torqueCurveId);
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (!reader.Read())
+                        return (0, 0);
+
+                    double torqueScale = Convert.ToDouble(reader["TorqueScale"]);
+                    double maxPowerKw = 0;
+                    int maxPowerRpm = 0;
+
+                    for (int i = 0; i <= 245; i++)
+                    {
+                        string column = "v" + i;
+                        if (reader[column] is DBNull) continue;
+
+                        double percent = Convert.ToDouble(reader[column]);
+                        double torqueNm = percent * torqueScale;
+                        int rpm = i * 100;
+
+                        double powerKw = (torqueNm * rpm) / 9550.0;
+
+                        if (powerKw > maxPowerKw)
+                        {
+                            maxPowerKw = powerKw;
+                            maxPowerRpm = rpm;
+                        }
+                    }
+
+                    return (maxPowerKw, maxPowerRpm);
+                }
+            }
+        }
+
+        private void ShowTorqueCurveChartInPanel(
+    Panel panel,
+    string mediaName,
+    double[] maxTorquePercentages,
+    double maxTorqueScale,
+    double[] stockTorquePercentages,
+    double stockTorqueScale)
+        {
+            var chart = new Chart();
+            chart.Dock = DockStyle.Fill;
+
+            var chartArea = new ChartArea("MainArea");
+            chart.ChartAreas.Add(chartArea);
+
+            chartArea.AxisX.Title = "RPM";
+            chartArea.AxisY.Title = "Torque / Power";
+            chartArea.AxisX.Interval = 1000;
+            chartArea.AxisY.MajorGrid.LineDashStyle = ChartDashStyle.Dash;
+            chartArea.AxisX.MajorGrid.LineDashStyle = ChartDashStyle.Dot;
+
+            // Enforce Y-axis >= 0
+            chartArea.AxisY.Minimum = 0;
+
+            // Cursor interaction setup
+            chartArea.CursorX.IsUserEnabled = true;
+            chartArea.CursorX.IsUserSelectionEnabled = false;
+            chartArea.CursorX.LineColor = Color.Gray;
+            chartArea.CursorX.LineDashStyle = ChartDashStyle.Dash;
+
+            // Tooltip label
+            var tooltip = new Label
+            {
+                AutoSize = true,
+                BackColor = Color.FromArgb(200, 255, 255, 255),
+                ForeColor = Color.Black,
+                BorderStyle = BorderStyle.FixedSingle,
+                Visible = false
+            };
+            chart.Controls.Add(tooltip);
+
+            int maxRpmIndex = 0;
+
+            var seriesMaxTorque = new Series("Max Torque")
+            {
+                ChartType = SeriesChartType.Line,
+                Color = Color.Red,
+                BorderWidth = 2
+            };
+
+            var seriesMaxPower = new Series("Max Power")
+            {
+                ChartType = SeriesChartType.Line,
+                Color = Color.Blue,
+                BorderWidth = 2
+            };
+
+            var seriesStockTorque = new Series("Stock Torque")
+            {
+                ChartType = SeriesChartType.Line,
+                Color = Color.Red,
+                BorderDashStyle = ChartDashStyle.Dash,
+                BorderWidth = 2
+            };
+
+            var seriesStockPower = new Series("Stock Power")
+            {
+                ChartType = SeriesChartType.Line,
+                Color = Color.Blue,
+                BorderDashStyle = ChartDashStyle.Dash,
+                BorderWidth = 2
+            };
+
+            bool reachedZeroMax = false;
+            bool reachedZeroStock = false;
+
+            for (int i = 0; i <= 245; i++)
+            {
+                int rpm = i * 100;
+
+                double maxTorque = maxTorquePercentages[i] * maxTorqueScale;
+                double maxPower = (maxTorque * rpm) / 9550.0;
+
+                double stockTorque = stockTorquePercentages[i] * stockTorqueScale;
+                double stockPower = (stockTorque * rpm) / 9550.0;
+
+                if (!reachedZeroMax && maxTorque > 0)
+                {
+                    seriesMaxTorque.Points.AddXY(rpm, maxTorque);
+                    seriesMaxPower.Points.AddXY(rpm, maxPower);
+                    maxRpmIndex = i;
+                }
+                else
+                {
+                    reachedZeroMax = true;
+                }
+
+                if (!reachedZeroStock && stockTorque > 0)
+                {
+                    seriesStockTorque.Points.AddXY(rpm, stockTorque);
+                    seriesStockPower.Points.AddXY(rpm, stockPower);
+                    maxRpmIndex = Math.Max(maxRpmIndex, i);
+                }
+                else
+                {
+                    reachedZeroStock = true;
+                }
+            }
+
+
+            int maxRpm = ((maxRpmIndex * 100 + 999) / 1000) * 1000;
+            chartArea.AxisX.Minimum = 0;
+            chartArea.AxisX.Maximum = maxRpm;
+
+            chart.Series.Add(seriesMaxTorque);
+            chart.Series.Add(seriesMaxPower);
+            chart.Series.Add(seriesStockTorque);
+            chart.Series.Add(seriesStockPower);
+
+            chart.Titles.Add($"Torque & Power Curve for {mediaName}");
+
+            chart.MouseMove += (s, e) =>
+            {
+                var pos = e.Location;
+                var result = chart.HitTest(pos.X, pos.Y);
+
+                try
+                {
+                    if (result.ChartArea != null)
+                    {
+                        double xVal = chartArea.AxisX.PixelPositionToValue(pos.X);
+                        int rpm = (int)Math.Round(xVal);
+
+                        if (rpm >= 0 && rpm <= 24500)
+                        {
+                            int i0 = rpm / 100;
+                            int i1 = Math.Min(i0 + 1, 245);
+                            double fraction = (rpm % 100) / 100.0;
+
+                            double interp(double[] values, double scale) =>
+                                Math.Max(0, ((1 - fraction) * values[i0] + fraction * values[i1]) * scale);
+
+                            double maxTorque = interp(maxTorquePercentages, maxTorqueScale);
+                            double stockTorque = interp(stockTorquePercentages, stockTorqueScale);
+
+                            double maxPower = Math.Max(0, (maxTorque * rpm) / 9550.0);
+                            double stockPower = Math.Max(0, (stockTorque * rpm) / 9550.0);
+
+                            tooltip.Text =
+                                $"RPM: {rpm}\n" +
+                                $"Max Torque: {maxTorque:F1} Nm\n" +
+                                $"Max Power: {maxPower:F1} kW\n" +
+                                $"Stock Torque: {stockTorque:F1} Nm\n" +
+                                $"Stock Power: {stockPower:F1} kW";
+
+                            tooltip.Location = new Point(pos.X + 15, pos.Y + 15);
+                            tooltip.Visible = true;
+                        }
+                        else
+                        {
+                            tooltip.Visible = false;
+                        }
+                    }
+                }
+                catch
+                {
+                    tooltip.Visible = false;
+                }
+            };
+
+
+            panel.Controls.Clear();
+            panel.Controls.Add(chart);
+        }
 
 
 
 
+        private void lblStock_Click(object sender, EventArgs e)
+        {
 
-
-
-
+        }
     }
 
 
