@@ -4,7 +4,10 @@ What is currently possible
 
 Engine Swapping: In a few clicks you can put any engine from one car into another with accurate weight calculation
 <img width="1183" height="931" alt="image" src="https://github.com/user-attachments/assets/85fc9ed2-21d7-4a81-b73b-fbe54931f1f6" />
-Giving engines real names: As it says you can give engines modern names in a click this is done by downloading the project forza plus 4 engine spreadsheet and importing the names used in there.
+Giving engines real names: As it says you can give engines realistic names in a click. This is done by downloading the project forza plus 4 engine spreadsheet as a csv
+<a href=https://docs.google.com/spreadsheets/d/1vJUIEwg9lau_pUKfdCLb0hYN1nz4JMHLXVGEfJUPSMY/edit?gid=1242344612#gid=1242344612></a>
+
+and importing the names used in there.
 
 Add all Tyre compounds to any car: in 1 click you can add street tyres and vintage tyres to any sort of car that wouldn't normally have them 
 
